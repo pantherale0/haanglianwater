@@ -1,19 +1,16 @@
 """Adds config flow for Blueprint."""
+
 from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from pyanglianwater import API
+from pyanglianwater.exceptions import InvalidUsernameError, InvalidPasswordError
 
-from .api import (
-    IntegrationBlueprintApiClient,
-    IntegrationBlueprintApiClientAuthenticationError,
-    IntegrationBlueprintApiClientCommunicationError,
-    IntegrationBlueprintApiClientError,
-)
-from .const import DOMAIN, LOGGER
+
+from .const import DOMAIN, LOGGER, CONF_DEVICE_ID
 
 
 class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -29,17 +26,24 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _errors = {}
         if user_input is not None:
             try:
-                await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except IntegrationBlueprintApiClientAuthenticationError as exception:
+                if user_input.get(CONF_DEVICE_ID, "") == "":
+                    await API.create_via_login(
+                        email=user_input[CONF_USERNAME],
+                        password=user_input[CONF_PASSWORD],
+                    )
+                else:
+                    await API.create_via_login_existing_device(
+                        email=user_input[CONF_USERNAME],
+                        password=user_input[CONF_PASSWORD],
+                        dev_id=user_input[CONF_DEVICE_ID],
+                    )
+            except InvalidUsernameError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
-            except IntegrationBlueprintApiClientCommunicationError as exception:
-                LOGGER.error(exception)
-                _errors["base"] = "connection"
-            except IntegrationBlueprintApiClientError as exception:
+            except InvalidPasswordError as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = "auth"
+            except Exception as exception:
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
@@ -52,6 +56,9 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_DEVICE_ID, default=(user_input or {}).get(CONF_DEVICE_ID)
+                    ): selector.TextSelector(),
                     vol.Required(
                         CONF_USERNAME,
                         default=(user_input or {}).get(CONF_USERNAME),
@@ -69,12 +76,3 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=_errors,
         )
-
-    async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials."""
-        client = IntegrationBlueprintApiClient(
-            username=username,
-            password=password,
-            session=async_create_clientsession(self.hass),
-        )
-        await client.async_get_data()

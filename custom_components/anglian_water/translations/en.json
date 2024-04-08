@@ -2,10 +2,11 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/ludeeus/integration_blueprint",
+                "description": "If you need help with the configuration have a look here: https://github.com/pantherale0/haanglianwater",
                 "data": {
                     "username": "Username",
-                    "password": "Password"
+                    "password": "Password",
+                    "device_id": "Device ID"
                 }
             }
         },

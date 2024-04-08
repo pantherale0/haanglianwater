@@ -1,17 +1,26 @@
-"""Sensor platform for integration_blueprint."""
+"""Sensor platform for anglian_water."""
+
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorDeviceClass,
+    SensorStateClass,
+)
 
 from .const import DOMAIN
-from .coordinator import BlueprintDataUpdateCoordinator
-from .entity import IntegrationBlueprintEntity
+from .coordinator import AnglianWaterDataUpdateCoordinator
+from .entity import AnglianWaterEntity
 
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="integration_blueprint",
-        name="Integration Sensor",
-        icon="mdi:format-quote-close",
+        key="anglian_water_previous_consumption",
+        name="Previous Consumption",
+        icon="mdi:water",
+        native_unit_of_measurement="m3",
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL,
     ),
 )
 
@@ -20,7 +29,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_devices(
-        IntegrationBlueprintSensor(
+        AnglianWaterSensor(
             coordinator=coordinator,
             entity_description=entity_description,
         )
@@ -28,12 +37,12 @@ async def async_setup_entry(hass, entry, async_add_devices):
     )
 
 
-class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
-    """integration_blueprint Sensor class."""
+class AnglianWaterSensor(AnglianWaterEntity, SensorEntity):
+    """anglian_water Sensor class."""
 
     def __init__(
         self,
-        coordinator: BlueprintDataUpdateCoordinator,
+        coordinator: AnglianWaterDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
@@ -43,4 +52,4 @@ class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+        return self.coordinator.client.current_usage

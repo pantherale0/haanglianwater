@@ -6,7 +6,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
     SensorDeviceClass,
-    SensorStateClass,
 )
 
 from .const import DOMAIN
@@ -18,9 +17,8 @@ ENTITY_DESCRIPTIONS = (
         key="anglian_water_previous_consumption",
         name="Previous Consumption",
         icon="mdi:water",
-        native_unit_of_measurement="m3",
+        native_unit_of_measurement="m³",
         device_class=SensorDeviceClass.WATER,
-        state_class=SensorStateClass.TOTAL,
     ),
 )
 

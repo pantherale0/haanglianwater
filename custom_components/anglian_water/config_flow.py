@@ -27,12 +27,12 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 if user_input.get(CONF_DEVICE_ID, "") == "":
-                    await API.create_via_login(
+                    auth = await API.create_via_login(
                         email=user_input[CONF_USERNAME],
                         password=user_input[CONF_PASSWORD],
                     )
                 else:
-                    await API.create_via_login_existing_device(
+                    auth = await API.create_via_login_existing_device(
                         email=user_input[CONF_USERNAME],
                         password=user_input[CONF_PASSWORD],
                         dev_id=user_input[CONF_DEVICE_ID],
@@ -47,6 +47,7 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
+                user_input[CONF_DEVICE_ID] = auth.device_id
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME],
                     data=user_input,

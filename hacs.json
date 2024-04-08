@@ -1,6 +1,6 @@
 {
     "name": "Anglian Water",
-    "filename": "integration_blueprint.zip",
+    "filename": "anglian_water.zip",
     "hide_default_branch": true,
     "homeassistant": "2023.8.0",
     "render_readme": true,

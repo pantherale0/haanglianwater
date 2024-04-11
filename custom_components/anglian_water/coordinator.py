@@ -24,6 +24,7 @@ from pyanglianwater.exceptions import (
     InvalidPasswordError,
     InvalidUsernameError,
     UnknownEndpointError,
+    ExpiredAccessTokenError,
 )
 
 from .const import DOMAIN, LOGGER
@@ -53,7 +54,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(minutes=20),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self, token_refreshed: bool = False):
         """Update data via library."""
         try:
             await self.client.update()
@@ -64,6 +65,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             raise ConfigEntryAuthFailed(exception) from exception
         except UnknownEndpointError as exception:
             raise UpdateFailed(exception) from exception
+        except ExpiredAccessTokenError as exception:
+            if not token_refreshed:
+                await self.client.api.refresh_login()
+                await self._async_update_data(True)
+            else:
+                raise UpdateFailed(exception) from exception
 
     async def _insert_statistics(self):
         """Insert Anglian Water stats."""

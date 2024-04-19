@@ -7,10 +7,11 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 from pyanglianwater import API
+from pyanglianwater.const import ANGLIAN_WATER_TARIFFS
 from pyanglianwater.exceptions import InvalidUsernameError, InvalidPasswordError
 
 
-from .const import DOMAIN, LOGGER, CONF_DEVICE_ID
+from .const import DOMAIN, LOGGER, CONF_DEVICE_ID, CONF_TARIFF, CONF_CUSTOM_RATE
 
 
 class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -53,6 +54,9 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input,
                 )
 
+        tarifs = [
+            selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_TARIFFS
+        ]
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -73,6 +77,24 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD
                         ),
+                    ),
+                    vol.Optional(
+                        CONF_TARIFF, default=(user_input or {}).get(CONF_TARIFF, None)
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=tarifs,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_CUSTOM_RATE,
+                        default=(user_input or {}).get(CONF_CUSTOM_RATE, None),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            unit_of_measurement="GBP",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
                     ),
                 }
             ),

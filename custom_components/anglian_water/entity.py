@@ -12,12 +12,14 @@ from .coordinator import AnglianWaterDataUpdateCoordinator
 class AnglianWaterEntity(CoordinatorEntity):
     """AnglianWaterEntity class."""
 
-    def __init__(self, coordinator: AnglianWaterDataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: AnglianWaterDataUpdateCoordinator, entity: str
+    ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        self._attr_unique_id = coordinator.config_entry.entry_id
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.unique_id)},
+            identifiers={(DOMAIN, coordinator.config_entry.entry_id)},
             name=NAME,
             model=VERSION,
             manufacturer=NAME,

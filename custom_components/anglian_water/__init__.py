@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from pyanglianwater import AnglianWater, API
 
 
-from .const import DOMAIN, CONF_DEVICE_ID
+from .const import DOMAIN, CONF_DEVICE_ID, CONF_TARIFF, CONF_CUSTOM_RATE
 from .coordinator import AnglianWaterDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
@@ -28,6 +28,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     _aw = AnglianWater()
     _aw.api = _api
+    _aw.current_tariff = entry.data.get(CONF_TARIFF, None)
+    _aw.current_tariff_rate = entry.data.get(CONF_CUSTOM_RATE, None)
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator = AnglianWaterDataUpdateCoordinator(
         hass=hass, client=_aw

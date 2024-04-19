@@ -13,6 +13,7 @@ from homeassistant.components.recorder.statistics import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.const import UnitOfVolume
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
@@ -76,6 +77,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
     async def _insert_statistics(self):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
+        cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
         try:
             last_stats = await get_instance(self.hass).async_add_executor_job(
                 get_last_statistics, self.hass, 1, stat_id, True, "sum"
@@ -109,6 +111,9 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             last_stats_time = stat[stat_id][0]["start"]
 
         statistics = []
+        cost_statistics = []
+        cost = 0.0
+        previous_read = None
         for reading in hourly_consumption_data["readings"]:
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
@@ -117,20 +122,40 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
+            total_read = int(reading["meterReadValue"]) / 1000
             statistics.append(
                 StatisticData(
                     start=start - timedelta(hours=1),
                     state=reading["consumption"],
-                    sum=int(reading["meterReadValue"]) / 1000,
+                    sum=total_read,
+                )
+            )
+            if previous_read is None:
+                previous_read = int(reading["meterReadValue"]) / 1000
+                continue
+            inst_cost = (total_read - previous_read) * self.client.current_tariff_rate
+            cost += inst_cost
+            cost_statistics.append(
+                StatisticData(
+                    start=start - timedelta(hours=1), state=inst_cost, sum=cost
                 )
             )
 
-        metadata = StatisticMetaData(
+        metadata_consumption = StatisticMetaData(
             has_mean=False,
             has_sum=True,
             name="Previous Water Consumption",
             source=DOMAIN,
             statistic_id=stat_id,
-            unit_of_measurement="m³",
+            unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         )
-        async_add_external_statistics(self.hass, metadata, statistics)
+        metadata_cost = StatisticMetaData(
+            has_mean=False,
+            has_sum=True,
+            name="Previous Water Cost",
+            source=DOMAIN,
+            statistic_id=cost_stat_id,
+            unit_of_measurement="GBP",
+        )
+        async_add_external_statistics(self.hass, metadata_consumption, statistics)
+        async_add_external_statistics(self.hass, metadata_cost, cost_statistics)

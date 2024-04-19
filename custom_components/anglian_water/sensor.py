@@ -20,6 +20,13 @@ ENTITY_DESCRIPTIONS = (
         native_unit_of_measurement="m³",
         device_class=SensorDeviceClass.WATER,
     ),
+    SensorEntityDescription(
+        key="anglian_water_previous_cost",
+        name="Previous Cost",
+        icon="mdi:cash",
+        native_unit_of_measurement="GBP",
+        device_class=SensorDeviceClass.MONETARY,
+    ),
 )
 
 
@@ -44,10 +51,12 @@ class AnglianWaterSensor(AnglianWaterEntity, SensorEntity):
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, entity_description.key)
         self.entity_description = entity_description
 
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
+        if self.entity_description.key == "anglian_water_previous_cost":
+            return self.coordinator.client.current_cost
         return self.coordinator.client.current_usage

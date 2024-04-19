@@ -6,7 +6,9 @@
                 "data": {
                     "username": "Username",
                     "password": "Password",
-                    "device_id": "Device ID"
+                    "device_id": "Device ID",
+                    "tariff": "Water Tariff",
+                    "custom_rate": "Custom Water Rate"
                 }
             }
         },

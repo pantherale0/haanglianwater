@@ -31,6 +31,7 @@ from .const import DOMAIN, LOGGER
 
 
 def is_dst(utc_dt: datetime):
+    """Check if time is in daylight savings time."""
     return bool(time.localtime(utc_dt.timestamp()).tm_isdst)
 
 

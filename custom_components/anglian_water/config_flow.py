@@ -58,11 +58,12 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        CONF_DEVICE_ID, default=(user_input or {}).get(CONF_DEVICE_ID)
+                        CONF_DEVICE_ID,
+                        default=(user_input or {}).get(CONF_DEVICE_ID, ""),
                     ): selector.TextSelector(),
                     vol.Required(
                         CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME),
+                        default=(user_input or {}).get(CONF_USERNAME, ""),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT

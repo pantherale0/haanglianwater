@@ -9,7 +9,7 @@ from homeassistant.components.recorder.models import StatisticData, StatisticMet
 from homeassistant.components.recorder.statistics import (
     async_add_external_statistics,
     get_last_statistics,
-    statistic_during_period,
+    statistics_during_period,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -90,25 +90,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 start=date.today() - timedelta(days=365),
                 end=date.today(),
             )
-            last_stats_time = None
         else:
             # We will just use the most recent data
             hourly_consumption_data = await self.client.get_usages(
-                start=date.today() - timedelta(days=1), end=date.today()
+                start=date.today() - timedelta(days=2),
+                end=date.today() + timedelta(days=1),
             )
-            start = dt_util.parse_datetime(
-                hourly_consumption_data[0]["meterReadTimestamp"]
-            )
-            stat = await get_instance(self.hass).async_add_executor_job(
-                statistic_during_period,
-                self.hass,
-                start,
-                None,
-                [stat_id],
-                "hour",
-                True,
-            )
-            last_stats_time = stat[stat_id][0]["start"]
 
         statistics = []
         cost_statistics = []
@@ -118,8 +105,6 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
                 start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
-            if last_stats_time is not None and start <= last_stats_time:
-                continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
             total_read = int(reading["meterReadValue"]) / 1000

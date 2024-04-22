@@ -80,7 +80,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
         try:
             last_stats = await get_instance(self.hass).async_add_executor_job(
-                get_last_statistics, self.hass, 1, stat_id, True, "sum"
+                get_last_statistics, self.hass, 1, stat_id, True, {"sum"}
             )
         except AttributeError:
             last_stats = None

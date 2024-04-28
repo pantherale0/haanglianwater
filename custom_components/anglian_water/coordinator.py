@@ -119,7 +119,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
             inst_cost = (total_read - previous_read) * self.client.current_tariff_rate
-            cost += inst_cost
+            cost = inst_cost
             cost_statistics.append(
                 StatisticData(
                     start=start - timedelta(hours=1), state=inst_cost, sum=cost

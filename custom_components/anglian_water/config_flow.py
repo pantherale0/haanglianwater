@@ -11,13 +11,20 @@ from pyanglianwater.const import ANGLIAN_WATER_TARIFFS
 from pyanglianwater.exceptions import InvalidUsernameError, InvalidPasswordError
 
 
-from .const import DOMAIN, LOGGER, CONF_DEVICE_ID, CONF_TARIFF, CONF_CUSTOM_RATE
+from .const import (
+    DOMAIN,
+    LOGGER,
+    CONF_DEVICE_ID,
+    CONF_TARIFF,
+    CONF_CUSTOM_RATE,
+    CONF_VERSION,
+)
 
 
 class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Blueprint."""
 
-    VERSION = 1
+    VERSION = CONF_VERSION
 
     async def async_step_user(
         self,

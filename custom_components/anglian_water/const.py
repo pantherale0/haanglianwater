@@ -12,3 +12,4 @@ CONF_DEVICE_ID = "device_id"
 CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
 CONF_FORCE_IMPORT = "force_import"
+CONF_VERSION = 2

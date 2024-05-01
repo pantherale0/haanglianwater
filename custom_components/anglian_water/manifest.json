@@ -1,7 +1,7 @@
 {
-  "after_dependencies": ["recorder"],
   "domain": "anglian_water",
   "name": "Anglian Water",
+  "after_dependencies": ["recorder"],
   "codeowners": [
     "@pantherale0"
   ],

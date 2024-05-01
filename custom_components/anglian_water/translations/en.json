@@ -15,7 +15,8 @@
         "error": {
             "auth": "Username/Password is wrong.",
             "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred."
+            "unknown": "Unknown error occurred.",
+            "maintenance": "Anglian Water app service is currently unavailble due to maintenance. Try again later."
         }
     }
 }

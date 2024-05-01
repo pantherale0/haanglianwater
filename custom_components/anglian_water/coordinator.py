@@ -25,6 +25,7 @@ from pyanglianwater.exceptions import (
     InvalidUsernameError,
     UnknownEndpointError,
     ExpiredAccessTokenError,
+    ServiceUnavailableError,
 )
 
 from .const import DOMAIN, LOGGER
@@ -35,7 +36,6 @@ def is_dst(utc_dt: datetime):
     return bool(time.localtime(utc_dt.timestamp()).tm_isdst)
 
 
-# https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
@@ -66,6 +66,8 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             raise ConfigEntryAuthFailed(exception) from exception
         except UnknownEndpointError as exception:
             raise UpdateFailed(exception) from exception
+        except ServiceUnavailableError as exception:
+            raise UpdateFailed(exception) from exception
         except ExpiredAccessTokenError as exception:
             if not token_refreshed:
                 await self.client.api.refresh_login()
@@ -86,7 +88,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         if not last_stats:
             # First time lets insert last year of data
             hourly_consumption_data = await self.client.get_usages(
-                start=date.today() - timedelta(days=365),
+                start=date.today() - timedelta(days=730),
                 end=date.today(),
             )
         else:

@@ -17,8 +17,6 @@ from .const import (
     CONF_DEVICE_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
-    CONF_VERSION,
-    CONF_FORCE_IMPORT,
 )
 from .coordinator import AnglianWaterDataUpdateCoordinator
 
@@ -61,15 +59,3 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
-
-
-async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Migrate config entry."""
-    if entry.version == CONF_VERSION:
-        return False
-    if entry.version < 2:
-        # migrations to enable force import
-        new_data = dict(entry.data)
-        new_data[CONF_FORCE_IMPORT] = True
-        hass.config_entries.async_update_entry(entry, data=new_data, version=2)
-        return True

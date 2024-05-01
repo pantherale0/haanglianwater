@@ -8,7 +8,11 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 from pyanglianwater import API
 from pyanglianwater.const import ANGLIAN_WATER_TARIFFS
-from pyanglianwater.exceptions import InvalidUsernameError, InvalidPasswordError
+from pyanglianwater.exceptions import (
+    InvalidUsernameError,
+    InvalidPasswordError,
+    ServiceUnavailableError,
+)
 
 
 from .const import (
@@ -51,6 +55,11 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except InvalidPasswordError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
+            except ServiceUnavailableError as exception:
+                LOGGER.warning(
+                    "Anglian Water app service is unavailable. Check the app for more information."
+                )
+                _errors["base"] = "maintenance"
             else:
                 user_input[CONF_DEVICE_ID] = auth.device_id
                 return self.async_create_entry(

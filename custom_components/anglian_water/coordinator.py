@@ -9,7 +9,6 @@ from homeassistant.components.recorder.models import StatisticData, StatisticMet
 from homeassistant.components.recorder.statistics import (
     async_add_external_statistics,
     get_last_statistics,
-    statistics_during_period,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -118,12 +117,9 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             if previous_read is None:
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
-            inst_cost = (total_read - previous_read) * self.client.current_tariff_rate
-            cost = inst_cost
+            cost = (total_read - previous_read) * self.client.current_tariff_rate
             cost_statistics.append(
-                StatisticData(
-                    start=start - timedelta(hours=1), state=inst_cost, sum=cost
-                )
+                StatisticData(start=start - timedelta(hours=1), state=cost, sum=cost)
             )
 
         metadata_consumption = StatisticMetaData(

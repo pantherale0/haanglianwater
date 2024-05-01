@@ -51,9 +51,6 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except InvalidPasswordError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
-            except Exception as exception:
-                LOGGER.exception(exception)
-                _errors["base"] = "unknown"
             else:
                 user_input[CONF_DEVICE_ID] = auth.device_id
                 return self.async_create_entry(

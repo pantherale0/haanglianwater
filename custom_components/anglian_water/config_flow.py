@@ -55,7 +55,7 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except InvalidPasswordError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
-            except ServiceUnavailableError as exception:
+            except ServiceUnavailableError:
                 LOGGER.warning(
                     "Anglian Water app service is unavailable. Check the app for more information."
                 )

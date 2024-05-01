@@ -28,7 +28,7 @@ from pyanglianwater.exceptions import (
     ServiceUnavailableError,
 )
 
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN, LOGGER, CONF_VERSION
 
 
 def is_dst(utc_dt: datetime):
@@ -85,7 +85,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             )
         except AttributeError:
             last_stats = None
-        if not last_stats:
+        if not last_stats or self.config_entry.version == 1:
             # First time lets insert last year of data
             hourly_consumption_data = await self.client.get_usages(
                 start=date.today() - timedelta(days=730),
@@ -142,3 +142,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         )
         async_add_external_statistics(self.hass, metadata_consumption, statistics)
         async_add_external_statistics(self.hass, metadata_cost, cost_statistics)
+        if self.config_entry.version < CONF_VERSION:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, version=CONF_VERSION
+            )

@@ -18,5 +18,10 @@
             "unknown": "Unknown error occurred.",
             "maintenance": "Anglian Water app service is currently unavailble due to maintenance. Try again later."
         }
+    },
+    "exceptions": {
+        "maintenance": {
+            "message": "Anglian Water app service is currently unavailble due to maintenance."
+        }
     }
 }

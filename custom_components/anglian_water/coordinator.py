@@ -59,7 +59,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             await self.client.update()
-            await self._insert_statistics()
+            await self.insert_statistics()
         except InvalidUsernameError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except InvalidPasswordError as exception:
@@ -75,7 +75,9 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 raise UpdateFailed(exception) from exception
 
-    async def _insert_statistics(self):
+    async def insert_statistics(
+        self, start_date=(date.today() - timedelta(days=1)), end_date=date.today()
+    ):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
@@ -88,14 +90,13 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         if not last_stats or self.config_entry.version == 1:
             # First time lets insert last year of data
             hourly_consumption_data = await self.client.get_usages(
-                start=date.today() - timedelta(days=730),
-                end=date.today(),
+                start=start_date - timedelta(days=365), end=end_date
             )
         else:
             # We will just use the most recent data
             hourly_consumption_data = await self.client.get_usages(
-                start=date.today() - timedelta(days=2),
-                end=date.today() + timedelta(days=1),
+                start=start_date,
+                end=end_date,
             )
 
         statistics = []

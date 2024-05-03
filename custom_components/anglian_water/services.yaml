@@ -1,0 +1,24 @@
+force_refresh_statistics:
+  fields:
+    start:
+      required: True
+      advanced: False
+      selector:
+        date:
+    end:
+      required: True
+      advanced: False
+      selector:
+        date:
+get_readings:
+  fields:
+    start:
+      required: True
+      advanced: False
+      selector:
+        date:
+    end:
+      required: True
+      advanced: False
+      selector:
+        date:

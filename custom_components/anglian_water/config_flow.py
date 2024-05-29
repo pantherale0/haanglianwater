@@ -67,7 +67,7 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input,
                 )
 
-        tarifs = [
+        tariffs = [
             selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_TARIFFS
         ]
         return self.async_show_form(
@@ -92,17 +92,24 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         ),
                     ),
                     vol.Optional(
-                        CONF_TARIFF, default=(user_input or {}).get(CONF_TARIFF, None)
+                        CONF_TARIFF,
+                        default=(user_input or {}).get(CONF_TARIFF, "standard"),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=tarifs,
+                            options=tariffs,
                             multiple=False,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
                     vol.Optional(
                         CONF_CUSTOM_RATE,
-                        default=(user_input or {}).get(CONF_CUSTOM_RATE, None),
+                        default=(user_input or {}).get(
+                            CONF_CUSTOM_RATE,
+                            ANGLIAN_WATER_TARIFFS.get(
+                                (user_input or {}).get(CONF_TARIFF, "standard")
+                            ).get("rate", 0.0),
+                        ),
+                        description={"suggested_value": 2.0954},
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             unit_of_measurement="GBP",

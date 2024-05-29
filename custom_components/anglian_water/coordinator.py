@@ -87,7 +87,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             )
         except AttributeError:
             last_stats = None
-        if not last_stats or self.config_entry.version == 1:
+        if not last_stats:
             # First time lets insert last year of data
             hourly_consumption_data = await self.client.get_usages(
                 start=start_date - timedelta(days=365), end=end_date
@@ -121,6 +121,9 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
             cost = (total_read - previous_read) * self.client.current_tariff_rate
+            if cost < 0:
+                # cost can never be less than 0, so reset to 0
+                cost = 0.0
             cost_statistics.append(
                 StatisticData(start=start - timedelta(hours=1), state=cost, sum=cost)
             )

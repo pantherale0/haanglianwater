@@ -85,6 +85,13 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             last_stats = await get_instance(self.hass).async_add_executor_job(
                 get_last_statistics, self.hass, 1, stat_id, True, {"sum"}
             )
+            last_cost_stats = await get_instance(self.hass).async_add_executor_job(
+                get_last_statistics, self.hass, 1, cost_stat_id, True, {"sum"}
+            )
+            if len(last_stats.get(stat_id, [])) > 0:
+                last_stats = last_stats[stat_id][0]
+            if len(last_stats.get(stat_id, [])) > 0:
+                last_cost_stats = last_cost_stats[stat_id][0]
         except AttributeError:
             last_stats = None
         if not last_stats:
@@ -95,18 +102,20 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             # We will just use the most recent data
             hourly_consumption_data = await self.client.get_usages(
-                start=start_date,
+                start=datetime.fromtimestamp(last_stats.get("start")),
                 end=end_date,
             )
 
         statistics = []
         cost_statistics = []
         cost = 0.0
-        previous_read = None
+        previous_read = float(last_stats.get("sum", None))
         for reading in hourly_consumption_data["readings"]:
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
                 start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
+            if last_stats is not None and start.timestamp() <= last_stats.get("start"):
+                continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
             total_read = int(reading["meterReadValue"]) / 1000
@@ -121,12 +130,10 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
             cost = (total_read - previous_read) * self.client.current_tariff_rate
-            if cost < 0:
-                # cost can never be less than 0, so reset to 0
-                cost = 0.0
             cost_statistics.append(
                 StatisticData(start=start - timedelta(hours=1), state=cost, sum=cost)
             )
+            previous_read = int(reading["meterReadValue"]) / 1000
 
         metadata_consumption = StatisticMetaData(
             has_mean=False,

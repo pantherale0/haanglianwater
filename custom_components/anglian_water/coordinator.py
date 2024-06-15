@@ -3,6 +3,7 @@
 from __future__ import annotations
 import time
 from datetime import timedelta, date, datetime
+from operator import itemgetter
 
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
@@ -75,21 +76,42 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 raise UpdateFailed(exception) from exception
 
-    async def insert_statistics(self, start_date=None, end_date=date.today()):
+    async def insert_statistics(self, start_date: date = None, end_date=date.today()):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
+        if start_date is not None:
+            # need to calculate the number of statistics to retrieve for last_stats
+            timespan = datetime.now() - datetime.combine(
+                start_date, datetime.min.time()
+            )
+            stat_count = (
+                int(
+                    round(
+                        (((timespan.seconds / 3600) + (timespan.days * 24)) * 60) / 2, 0
+                    )
+                )
+                + 1
+            )
+        else:
+            stat_count = 1
         try:
             last_stats = await get_instance(self.hass).async_add_executor_job(
-                get_last_statistics, self.hass, 1, stat_id, True, {"sum"}
+                get_last_statistics, self.hass, stat_count, stat_id, True, {"sum"}
             )
             last_cost_stats = await get_instance(self.hass).async_add_executor_job(
-                get_last_statistics, self.hass, 1, cost_stat_id, True, {"sum"}
+                get_last_statistics, self.hass, stat_count, cost_stat_id, True, {"sum"}
             )
             if len(last_stats.get(stat_id, [])) > 0:
-                last_stats = last_stats[stat_id][0]
-            if len(last_stats.get(stat_id, [])) > 0:
-                last_cost_stats = last_cost_stats[stat_id][0]
+                last_stats = last_stats[stat_id]
+                last_stats = sorted(last_stats, key=itemgetter("start"), reverse=False)[
+                    0
+                ]
+            if len(last_cost_stats.get(cost_stat_id, [])) > 0:
+                last_cost_stats = last_cost_stats[cost_stat_id]
+                last_cost_stats = sorted(
+                    last_cost_stats, key=itemgetter("start"), reverse=False
+                )[0]
         except AttributeError:
             last_stats = None
         if not last_stats:
@@ -108,23 +130,21 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 )
             else:
                 hourly_consumption_data = await self.client.get_usages(
-                    start=start_date,
+                    start=start_date
+                    - timedelta(hours=6),  # request 6 hrs before as buffer for cost
                     end=end_date,
                 )
 
         statistics = []
         cost_statistics = []
         cost = 0.0
+        total_cost = float(last_cost_stats.get("sum", 0.0))
         previous_read = float(last_stats.get("sum", None))
         for reading in hourly_consumption_data["readings"]:
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
                 start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
-            if (
-                last_stats is not None
-                and start_date is None
-                and start.timestamp() <= last_stats.get("start")
-            ):
+            if last_stats is not None and start.timestamp() <= last_stats.get("start"):
                 continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
@@ -140,8 +160,11 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
             cost = (total_read - previous_read) * self.client.current_tariff_rate
+            total_cost += cost
             cost_statistics.append(
-                StatisticData(start=start - timedelta(hours=1), state=cost, sum=cost)
+                StatisticData(
+                    start=start - timedelta(hours=1), state=cost, sum=total_cost
+                )
             )
             previous_read = int(reading["meterReadValue"]) / 1000
 

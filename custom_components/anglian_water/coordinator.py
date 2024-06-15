@@ -75,9 +75,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 raise UpdateFailed(exception) from exception
 
-    async def insert_statistics(
-        self, start_date=(date.today() - timedelta(days=1)), end_date=date.today()
-    ):
+    async def insert_statistics(self, start_date=None, end_date=date.today()):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
@@ -96,15 +94,23 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             last_stats = None
         if not last_stats:
             # First time lets insert last year of data
+            if start_date is None:
+                start_date = datetime.now()
             hourly_consumption_data = await self.client.get_usages(
                 start=start_date - timedelta(days=365), end=end_date
             )
         else:
             # We will just use the most recent data
-            hourly_consumption_data = await self.client.get_usages(
-                start=datetime.fromtimestamp(last_stats.get("start")),
-                end=end_date,
-            )
+            if start_date is None:
+                hourly_consumption_data = await self.client.get_usages(
+                    start=datetime.fromtimestamp(last_stats.get("start")),
+                    end=end_date,
+                )
+            else:
+                hourly_consumption_data = await self.client.get_usages(
+                    start=start_date,
+                    end=end_date,
+                )
 
         statistics = []
         cost_statistics = []
@@ -114,7 +120,11 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
                 start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
-            if last_stats is not None and start.timestamp() <= last_stats.get("start"):
+            if (
+                last_stats is not None
+                and start_date is None
+                and start.timestamp() <= last_stats.get("start")
+            ):
                 continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard

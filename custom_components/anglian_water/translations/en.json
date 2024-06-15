@@ -23,5 +23,35 @@
         "maintenance": {
             "message": "Anglian Water app service is currently unavailble due to maintenance."
         }
+    },
+    "services": {
+        "force_refresh_statistics": {
+            "name": "Force Refresh Statistics",
+            "description": "This will force refresh all of the data for the specified range for both water usage and cost.",
+            "fields": {
+                "start": {
+                    "name": "Start",
+                    "description": "The start of the period to refresh."
+                },
+                "end": {
+                    "name": "End",
+                    "description": "The end of the period to refresh."
+                }
+            }
+        },
+        "get_readings": {
+            "name": "Get Available Readings",
+            "description": "Get available water meter readings for a given period.",
+            "fields": {
+                "start": {
+                    "name": "Start",
+                    "description": "The start of the period to retrieve."
+                },
+                "end": {
+                    "name": "End",
+                    "description": "The end of the period to retrieve."
+                }
+            }
+        }
     }
 }

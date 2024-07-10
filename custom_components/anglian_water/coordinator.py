@@ -148,8 +148,11 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
                 start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
-            if last_stats is not None and start.timestamp() <= last_stats.get("start"):
-                continue
+            if last_stats is not None:
+                if last_stats.get(
+                    "start"
+                ) is not None and start.timestamp() <= last_stats.get("start"):
+                    continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
             total_read = int(reading["meterReadValue"]) / 1000

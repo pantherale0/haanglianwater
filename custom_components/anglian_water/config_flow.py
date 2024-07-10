@@ -22,6 +22,7 @@ from .const import (
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION,
+    CONF_AREA,
 )
 
 
@@ -70,6 +71,7 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         tariffs = [
             selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_TARIFFS
         ]
+        areas = []
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -90,6 +92,13 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD
                         ),
+                    ),
+                    vol.Required(CONF_AREA): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=areas,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
                     ),
                     vol.Optional(
                         CONF_TARIFF,

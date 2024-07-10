@@ -8,7 +8,8 @@
                     "password": "Password",
                     "device_id": "Device ID",
                     "tariff": "Water Tariff",
-                    "custom_rate": "Custom Water Rate"
+                    "custom_rate": "Custom Water Rate",
+                    "tariff_area": "Water Meter Area"
                 }
             }
         },

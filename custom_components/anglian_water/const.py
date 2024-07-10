@@ -12,6 +12,7 @@ VERSION = "0.0.0"
 CONF_DEVICE_ID = "device_id"
 CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
+CONF_AREA = "tariff_area"
 CONF_VERSION = 2
 
 SVC_GET_USAGES_SCHEMA = vol.Schema(

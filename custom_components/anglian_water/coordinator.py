@@ -138,8 +138,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         statistics = []
         cost_statistics = []
         cost = 0.0
-        total_cost = float(last_cost_stats.get("sum", 0.0))
-        previous_read = float(last_stats.get("sum", None))
+        total_cost = last_cost_stats.get("sum", 0.0)
+        if not isinstance(total_cost, float):
+            total_cost = float(total_cost)
+        previous_read = last_stats.get("sum", None)
+        if previous_read is not None and not isinstance(previous_read, float):
+            previous_read = float(previous_read)
         for reading in hourly_consumption_data["readings"]:
             start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):

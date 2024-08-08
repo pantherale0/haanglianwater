@@ -7,6 +7,7 @@
                     "username": "Username",
                     "password": "Password",
                     "device_id": "Device ID",
+                    "area": "Area",
                     "tariff": "Water Tariff",
                     "custom_rate": "Custom Water Rate"
                 }

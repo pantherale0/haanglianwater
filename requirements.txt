@@ -2,4 +2,4 @@ colorlog==6.8.2
 homeassistant==2024.3.3
 pip>=24.1.1,<24.2
 ruff==0.4.10
-pyanglianwater==0.3.1
+pyanglianwater==0.4.0

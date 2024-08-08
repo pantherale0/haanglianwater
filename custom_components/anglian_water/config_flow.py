@@ -7,7 +7,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 from pyanglianwater import API
-from pyanglianwater.const import ANGLIAN_WATER_TARIFFS
+from pyanglianwater.const import ANGLIAN_WATER_AREAS
 from pyanglianwater.exceptions import (
     InvalidUsernameError,
     InvalidPasswordError,
@@ -22,6 +22,8 @@ from .const import (
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION,
+    CONF_AREA,
+    DEF_CONF_AREA
 )
 
 
@@ -66,9 +68,11 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     title=user_input[CONF_USERNAME],
                     data=user_input,
                 )
-
+        areas = [
+            selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_AREAS
+        ]
         tariffs = [
-            selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_TARIFFS
+            selector.SelectOptionDict(value=k, label=k) for k in ANGLIAN_WATER_AREAS.get("Anglian", {})
         ]
         return self.async_show_form(
             step_id="user",
@@ -91,6 +95,16 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             type=selector.TextSelectorType.PASSWORD
                         ),
                     ),
+                    vol.Required(
+                        CONF_AREA,
+                        default=(user_input or {}).get(CONF_AREA, DEF_CONF_AREA)
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=areas,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN
+                        )
+                    ),
                     vol.Optional(
                         CONF_TARIFF,
                         default=(user_input or {}).get(CONF_TARIFF, "standard"),
@@ -105,7 +119,9 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_CUSTOM_RATE,
                         default=(user_input or {}).get(
                             CONF_CUSTOM_RATE,
-                            ANGLIAN_WATER_TARIFFS.get(
+                            ANGLIAN_WATER_AREAS.get(
+                                (user_input or {}).get(CONF_AREA, DEF_CONF_AREA)
+                            ).get(
                                 (user_input or {}).get(CONF_TARIFF, "standard")
                             ).get("rate", 0.0),
                         ),

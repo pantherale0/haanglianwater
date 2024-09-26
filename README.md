@@ -40,6 +40,10 @@ Note, during first sign in, the integration needs to "register" Home Assistant a
 
 If the integration does not send the above queries in that order, the API to retrieve usage details continues to stay locked and this integration will not work. The integration does not store or process the data returned from the APIs for these extra endpoints, they are simply used to replicate the calls the mobile app creates.
 
+Starting in version 2024.10.0 different areas and tariff options are available, the config flow has been updated to reflect this. Defining your area is optional, however the import rate for your water usage will be inaccurate. Issues reporting an inaccurate water rate with a undefined area will be closed.
+
+If you receive any additional discounts on top of any existing tariff's, ensure you select "Custom" and provide the custom rate (£/m3) from your latest bill. If you are unsure, please contact Anglian Water to confirm your tariff and current water rate.
+
 ## Contributions are welcome!
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)

@@ -7,7 +7,18 @@
                     "username": "Username",
                     "password": "Password",
                     "device_id": "Device ID",
-                    "tariff": "Water Tariff",
+                    "area": "Area"
+                }
+            },
+            "tariff": {
+                "description": "Select your water tariff here, if it is not shown or you have a discounted rate, use \"Custom\".",
+                "data": {
+                    "tariff": "Water Tariff"
+                }
+            },
+            "custom_rate": {
+                "description": "Provide your water rate here, this should exclude sewerage as this integration only supports 'import' water.",
+                "data": {
                     "custom_rate": "Custom Water Rate"
                 }
             }

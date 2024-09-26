@@ -13,6 +13,7 @@ CONF_DEVICE_ID = "device_id"
 CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
 CONF_VERSION = 2
+CONF_AREA = "area"
 
 SVC_GET_USAGES_SCHEMA = vol.Schema(
     {vol.Required("start"): str, vol.Required("end"): str}

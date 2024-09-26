@@ -80,6 +80,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
+        end_date = datetime.combine(end_date, datetime.min.time())
         if start_date is not None:
             # need to calculate the number of statistics to retrieve for last_stats
             timespan = datetime.now() - datetime.combine(
@@ -97,10 +98,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             stat_count = 1
         try:
             last_stats = await get_instance(self.hass).async_add_executor_job(
-                get_last_statistics, self.hass, stat_count, stat_id, True, {"sum"}
+                get_last_statistics, self.hass, stat_count, stat_id, True, {
+                    "sum"}
             )
             last_cost_stats = await get_instance(self.hass).async_add_executor_job(
-                get_last_statistics, self.hass, stat_count, cost_stat_id, True, {"sum"}
+                get_last_statistics, self.hass, stat_count, cost_stat_id, True, {
+                    "sum"}
             )
             if len(last_stats.get(stat_id, [])) > 0:
                 last_stats = last_stats[stat_id]
@@ -131,7 +134,8 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 hourly_consumption_data = await self.client.get_usages(
                     start=start_date
-                    - timedelta(hours=6),  # request 6 hrs before as buffer for cost
+                    # request 6 hrs before as buffer for cost
+                    - timedelta(hours=6),
                     end=end_date,
                 )
 
@@ -145,9 +149,11 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         if previous_read is not None and not isinstance(previous_read, float):
             previous_read = float(previous_read)
         for reading in hourly_consumption_data["readings"]:
-            start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+00:00")
+            start = dt_util.parse_datetime(
+                reading["meterReadTimestamp"] + "+00:00")
             if is_dst(start):
-                start = dt_util.parse_datetime(reading["meterReadTimestamp"] + "+01:00")
+                start = dt_util.parse_datetime(
+                    reading["meterReadTimestamp"] + "+01:00")
             if last_stats is not None:
                 if last_stats.get(
                     "start"
@@ -166,7 +172,8 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             if previous_read is None:
                 previous_read = int(reading["meterReadValue"]) / 1000
                 continue
-            cost = (total_read - previous_read) * self.client.current_tariff_rate
+            cost = (total_read - previous_read) * \
+                self.client.current_tariff_rate
             total_cost += cost
             cost_statistics.append(
                 StatisticData(
@@ -191,8 +198,10 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             statistic_id=cost_stat_id,
             unit_of_measurement="GBP",
         )
-        async_add_external_statistics(self.hass, metadata_consumption, statistics)
-        async_add_external_statistics(self.hass, metadata_cost, cost_statistics)
+        async_add_external_statistics(
+            self.hass, metadata_consumption, statistics)
+        async_add_external_statistics(
+            self.hass, metadata_cost, cost_statistics)
         if self.config_entry.version < CONF_VERSION:
             self.hass.config_entries.async_update_entry(
                 self.config_entry, version=CONF_VERSION

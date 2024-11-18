@@ -3,11 +3,13 @@
 from logging import Logger, getLogger
 import voluptuous as vol
 
+from pyanglianwater import _version
+
 LOGGER: Logger = getLogger(__package__)
 
 NAME = "Anglian Water"
 DOMAIN = "anglian_water"
-VERSION = "0.0.0"
+VERSION = _version.__version__
 
 CONF_DEVICE_ID = "device_id"
 CONF_TARIFF = "tariff"

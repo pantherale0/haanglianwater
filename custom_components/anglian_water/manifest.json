@@ -1,7 +1,9 @@
 {
   "domain": "anglian_water",
   "name": "Anglian Water",
-  "after_dependencies": ["recorder"],
+  "after_dependencies": [
+    "recorder"
+  ],
   "codeowners": [
     "@pantherale0"
   ],
@@ -14,7 +16,7 @@
     "anglian_water"
   ],
   "requirements": [
-    "pyanglianwater==0.4.1"
+    "pyanglianwater==0.4.2"
   ],
   "version": "0.0.0"
 }

@@ -2,6 +2,7 @@
 
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
+![Install Stats][stats]
 [![License][license-shield]](LICENSE)
 
 ![Project Maintenance][maintenance-shield]
@@ -55,6 +56,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 [commits-shield]: https://img.shields.io/github/commit-activity/y/pantherale0/haanglianwater.svg?style=for-the-badge
 [commits]: https://github.com/pantherale0/haanglianwater/commits/main
+[stats]: https://img.shields.io/badge/dynamic/json?color=41BDF5&logo=home-assistant&label=integration%20usage&suffix=%20installs&cacheSeconds=15600&url=https://analytics.home-assistant.io/custom_integrations.json&query=$.anglian_water.total&style=for-the-badge
 [discord]: https://discord.gg/Qa5fW2R
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [exampleimg]: example.png

@@ -1,4 +1,5 @@
 """Custom integration to integration Anglian Water into Home Assistant.
+
 This integration is not endoursed or supported by Anglian Water.
 """
 

@@ -23,25 +23,45 @@ This integration will also collect the past year worth of smart meter readings f
 
 ## Installation
 
+### Manual
+
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
-1. In the `custom_components` directory (folder) create a new folder called `anglian_water`.
-1. Download _all_ the files from the `custom_components/anglian_water/` directory (folder) in this repository.
-1. Place the files you downloaded in the new directory (folder) you created.
+1. Download the zip from the latest release titled `anglian_water.zip`
+1. Extract downloaded zip into the `custom_components` folder
 1. Restart Home Assistant
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Anglian Water"
+
+### HACS
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=haangianwater)
+
+1. Open HACS on your HA instance.
+1. Copy the repository URL: [https://github.com/pantherale0/haangianwater](https://github.com/pantherale0/haangianwater).
+1. In the HACS menu (3 dots in the top right corner), choose "Custom repositories."
+1. Paste the copied URL into the repository field.
+1. Set the Type as "Integration."
+1. Click "Add."
+1. Restart Home Assistant.
+1. In the HA UI, go to "Configuration" -> "Integrations," click "+," and search for "Anglian Water."
+
+## Retrieving account ID
+
+As of 2nd April 2025, Anglian Water have turned off all of the old API endpoints this integration was using, therefore it not longer pulls back more than a couple of days worth of data. While the integration will handle auth successfully, you will need to provide your encrypted account ID. To get this, you can login to the standard Anglian Water website with dev tools open, monitoring the network calls to `https://apims-waf.awis.systems`.
+
+1. Launch browser of your choice, open Dev Tools (Inspect Element)
+1. Within Dev Tools window, switch to the network tab
+1. In the filter, enter `apims-waf.awis.systems`
+1. Login to Anglian Water's website as normal (https://myaccount.anglianwater.co.uk)
+1. Within Dev Tools, you will see a number of HTTP requests made, the first 2 should contain `state` in the `File` column. Select the request after with a bunch of random numbers and letters (first GET request)
+1. Your account ID is everything after `https://apims-waf.awis.systems/myaccount/v1/accounts/` in the URL on the right hand side, copy the entire string.
+1. Paste the copied string into the Account ID field in the config flow
 
 ## Configuration is done in the UI
 
 <!---->
 
-You should generally leave the Device ID field blank, the integration will generate this automatically after clicking submit.
-
-Note, during first sign in, the integration needs to "register" Home Assistant as a mobile device to your Anglian Water account, to configure the access token and device IDs correctly a number of requests must be sent in a specific order. Enabling debug mode you will see it makes two requests to "register_device", a request to "get_dashboard_details" and finally a request to "get_bills_payments".
-
-If the integration does not send the above queries in that order, the API to retrieve usage details continues to stay locked and this integration will not work. The integration does not store or process the data returned from the APIs for these extra endpoints, they are simply used to replicate the calls the mobile app creates.
-
-Starting in version 2024.10.0 different areas and tariff options are available, the config flow has been updated to reflect this. Defining your area is optional, however the import rate for your water usage will be inaccurate. Issues reporting an inaccurate water rate with a undefined area will be closed.
+Starting in version 2024.10.0 different areas and tariff options are available, the config flow has been updated to reflect this.
 
 If you receive any additional discounts on top of any existing tariff's, ensure you select "Custom" and provide the custom rate (£/m3) from your latest bill. If you are unsure, please contact Anglian Water to confirm your tariff and current water rate.
 

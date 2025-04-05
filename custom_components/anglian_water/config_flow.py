@@ -6,7 +6,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
-from pyanglianwater import API
+from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.const import ANGLIAN_WATER_AREAS
 from pyanglianwater.exceptions import (
     InvalidUsernameError,
@@ -18,7 +18,7 @@ from pyanglianwater.exceptions import (
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_DEVICE_ID,
+    CONF_ACCOUNT_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION,
@@ -40,17 +40,11 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _errors = {}
         if user_input is not None:
             try:
-                if user_input.get(CONF_DEVICE_ID, "") == "":
-                    auth = await API.create_via_login(
-                        email=user_input[CONF_USERNAME],
-                        password=user_input[CONF_PASSWORD],
-                    )
-                else:
-                    auth = await API.create_via_login_existing_device(
-                        email=user_input[CONF_USERNAME],
-                        password=user_input[CONF_PASSWORD],
-                        dev_id=user_input[CONF_DEVICE_ID],
-                    )
+                auth = MSOB2CAuth(
+                    username=user_input[CONF_USERNAME],
+                    password=user_input[CONF_PASSWORD]
+                )
+                await auth.send_login_request()
             except InvalidUsernameError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
@@ -63,7 +57,6 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 _errors["base"] = "maintenance"
             else:
-                user_input[CONF_DEVICE_ID] = auth.device_id
                 self._user_input = user_input
                 if user_input.get(CONF_AREA) is None:
                     return self.async_create_entry(
@@ -77,9 +70,9 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_DEVICE_ID,
-                        default=(user_input or {}).get(CONF_DEVICE_ID, ""),
+                    vol.Required(
+                        CONF_ACCOUNT_ID,
+                        default=(user_input or {}).get(CONF_ACCOUNT_ID, ""),
                     ): selector.TextSelector(),
                     vol.Required(
                         CONF_USERNAME,

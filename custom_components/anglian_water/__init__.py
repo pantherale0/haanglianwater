@@ -16,13 +16,15 @@ from homeassistant.core import (
     SupportsResponse,
 )
 from homeassistant.exceptions import ConfigEntryNotReady
-from pyanglianwater import AnglianWater, API
+from pyanglianwater import AnglianWater
+from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.exceptions import ServiceUnavailableError
 
 
 from .const import (
     DOMAIN,
-    CONF_DEVICE_ID,
+    CONF_AREA,
+    CONF_ACCOUNT_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     SVC_GET_USAGES_SCHEMA,
@@ -39,15 +41,18 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     try:
-        _api = await API.create_via_login_existing_device(
-            entry.data[CONF_USERNAME],
-            entry.data[CONF_PASSWORD],
-            entry.data[CONF_DEVICE_ID],
+        _api = MSOB2CAuth(
+            username=entry.data[CONF_USERNAME],
+            password=entry.data[CONF_PASSWORD],
+            account_id=entry.data[CONF_ACCOUNT_ID],
         )
-        _aw = AnglianWater()
-        _aw.api = _api
-        _aw.current_tariff = entry.data.get(CONF_TARIFF, None)
-        _aw.current_tariff_rate = entry.data.get(CONF_CUSTOM_RATE, None)
+        await _api.send_login_request()
+        _aw = await AnglianWater.create_from_authenticator(
+            authenticator=_api,
+            area=entry.data.get(CONF_AREA, None),
+            tariff=entry.data.get(CONF_TARIFF, None),
+            custom_rate=entry.data.get(CONF_CUSTOM_RATE, None)
+        )
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][entry.entry_id] = coordinator = (
             AnglianWaterDataUpdateCoordinator(hass=hass, client=_aw)
@@ -61,10 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # load service to request data for a specific time frame
         async def get_readings(call: ServiceCall) -> ServiceResponse:
             """Handle a request to get readings."""
-            return await _aw.get_usages(
-                start=date.fromisoformat(call.data["start"]),
-                end=date.fromisoformat(call.data["end"]),
-            )
+            return await _aw.get_usages()
 
         hass.services.async_register(
             domain=DOMAIN,
@@ -77,10 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # service call to force refresh data in database
         async def force_refresh_statistics(call: ServiceCall):
             """Handle a request to force refresh stats."""
-            await coordinator.insert_statistics(
-                start_date=date.fromisoformat(call.data["start"]),
-                end_date=date.fromisoformat(call.data["end"]),
-            )
+            await coordinator.insert_statistics()
 
         hass.services.async_register(
             domain=DOMAIN,

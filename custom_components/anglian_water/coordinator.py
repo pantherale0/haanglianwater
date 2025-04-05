@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 import time
-from datetime import timedelta, date, datetime
+from datetime import timedelta, datetime
 from operator import itemgetter
+
+from pytz import timezone as tz
 
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
@@ -71,31 +73,16 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
         except ExpiredAccessTokenError as exception:
             if not token_refreshed:
-                await self.client.api.refresh_login()
+                await self.client.api._auth.send_refresh_request()
                 await self._async_update_data(True)
             else:
                 raise UpdateFailed(exception) from exception
 
-    async def insert_statistics(self, start_date: date = None, end_date=date.today()):
+    async def insert_statistics(self):
         """Insert Anglian Water stats."""
         stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
         cost_stat_id = f"{DOMAIN}:anglian_water_previous_costs"
-        end_date = datetime.combine(end_date, datetime.min.time())
-        if start_date is not None:
-            # need to calculate the number of statistics to retrieve for last_stats
-            timespan = datetime.now() - datetime.combine(
-                start_date, datetime.min.time()
-            )
-            stat_count = (
-                int(
-                    round(
-                        (((timespan.seconds / 3600) + (timespan.days * 24)) * 60) / 2, 0
-                    )
-                )
-                + 1
-            )
-        else:
-            stat_count = 1
+        stat_count = 1
         try:
             last_stats = await get_instance(self.hass).async_add_executor_job(
                 get_last_statistics, self.hass, stat_count, stat_id, True, {
@@ -117,27 +104,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                 )[0]
         except AttributeError:
             last_stats = None
-        if not last_stats:
-            # First time lets insert last year of data
-            if start_date is None:
-                start_date = datetime.now()
-            hourly_consumption_data = await self.client.get_usages(
-                start=start_date - timedelta(days=365), end=end_date
-            )
-        else:
-            # We will just use the most recent data
-            if start_date is None:
-                hourly_consumption_data = await self.client.get_usages(
-                    start=datetime.fromtimestamp(last_stats.get("start")),
-                    end=end_date,
-                )
-            else:
-                hourly_consumption_data = await self.client.get_usages(
-                    start=start_date
-                    # request 6 hrs before as buffer for cost
-                    - timedelta(hours=6),
-                    end=end_date,
-                )
+        hourly_consumption_data = self.client.current_readings
 
         statistics = []
         cost_statistics = []
@@ -148,12 +115,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         previous_read = last_stats.get("sum", None)
         if previous_read is not None and not isinstance(previous_read, float):
             previous_read = float(previous_read)
-        for reading in hourly_consumption_data["readings"]:
+        for reading in hourly_consumption_data:
             start = dt_util.parse_datetime(
-                reading["meterReadTimestamp"] + "+00:00")
+                reading["date"]).replace(tzinfo=tz("Europe/London"))
             if is_dst(start):
                 start = dt_util.parse_datetime(
-                    reading["meterReadTimestamp"] + "+01:00")
+                    reading["date"]).replace(tzinfo=tz("Europe/London"))
             if last_stats is not None:
                 if last_stats.get(
                     "start"
@@ -161,16 +128,16 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                     continue
             # remove an hour from the start time data rec for hour is actually for the last hour
             # eg received at 10am is for 9-10am and will show incorrectly in HASS energy dashboard
-            total_read = int(reading["meterReadValue"]) / 1000
+            total_read = reading["meters"][0]["read"]
             statistics.append(
                 StatisticData(
                     start=start - timedelta(hours=1),
-                    state=reading["consumption"],
+                    state=reading["meters"][0]["consumption"],
                     sum=total_read,
                 )
             )
             if previous_read is None:
-                previous_read = int(reading["meterReadValue"]) / 1000
+                previous_read = reading["meters"][0]["read"]
                 continue
             cost = (total_read - previous_read) * \
                 self.client.current_tariff_rate
@@ -180,7 +147,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
                     start=start - timedelta(hours=1), state=cost, sum=total_cost
                 )
             )
-            previous_read = int(reading["meterReadValue"]) / 1000
+            previous_read = reading["meters"][0]["read"]
 
         metadata_consumption = StatisticMetaData(
             has_mean=False,

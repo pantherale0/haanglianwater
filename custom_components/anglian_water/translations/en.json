@@ -4,9 +4,10 @@
             "user": {
                 "description": "If you need help with the configuration have a look here: https://github.com/pantherale0/haanglianwater",
                 "data": {
-                    "username": "Username",
+                    "username": "Email",
                     "password": "Password",
                     "device_id": "Device ID",
+                    "account_id": "Account ID",
                     "area": "Area"
                 }
             },
@@ -24,7 +25,7 @@
             }
         },
         "error": {
-            "auth": "Username/Password is wrong.",
+            "auth": "Email/Password is wrong.",
             "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred.",
             "maintenance": "Anglian Water app service is currently unavailble due to maintenance. Try again later."

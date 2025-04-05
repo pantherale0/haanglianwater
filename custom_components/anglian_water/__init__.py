@@ -1,11 +1,8 @@
-"""Custom integration to integrate integration_blueprint with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/ludeeus/integration_blueprint
+"""Custom integration to integration Anglian Water into Home Assistant.
+This integration is not endoursed or supported by Anglian Water.
 """
 
 from __future__ import annotations
-from datetime import date
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform

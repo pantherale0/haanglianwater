@@ -5,8 +5,6 @@ import time
 from datetime import timedelta, datetime
 from operator import itemgetter
 
-from pytz import timezone as tz
-
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 from homeassistant.components.recorder.statistics import (
@@ -29,6 +27,7 @@ from pyanglianwater.exceptions import (
     UnknownEndpointError,
     ExpiredAccessTokenError,
     ServiceUnavailableError,
+    InvalidAccountIdError
 )
 
 from .const import DOMAIN, LOGGER, CONF_VERSION
@@ -55,8 +54,30 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=20),
+            update_interval=timedelta(hours=6),
         )
+
+    @property
+    def get_yesterday_reads(self) -> list:
+        """Retrieve yesterday's meter readings."""
+        yesterday = datetime.now() - timedelta(days=1)
+        yesterday = dt_util.as_local(yesterday)
+        yesterday = yesterday.replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        output = []
+        for reading in self.client.current_readings:
+            if dt_util.parse_datetime(reading["date"]).date() == yesterday.date():
+                output.append(reading["meters"][0])
+        return output
+
+    @property
+    def get_yesterday_cost(self) -> float:
+        """Return the cost of water usage yesterday."""
+        output = 0.0
+        for reading in self.get_yesterday_reads:
+            output += (reading["consumption"]/1000) * \
+                self.client.current_tariff_rate
+        return output
 
     async def _async_update_data(self, token_refreshed: bool = False):
         """Update data via library."""
@@ -71,12 +92,12 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
         except ServiceUnavailableError as exception:
             raise UpdateFailed(exception) from exception
+        except InvalidAccountIdError as exception:
+            raise ConfigEntryAuthFailed(exception) from exception
         except ExpiredAccessTokenError as exception:
-            if not token_refreshed:
-                await self.client.api._auth.send_refresh_request()
-                await self._async_update_data(True)
-            else:
-                raise UpdateFailed(exception) from exception
+            # No need to retry here, because module already refreshes the token
+            # This error is something different
+            raise UpdateFailed(exception) from exception
 
     async def insert_statistics(self):
         """Insert Anglian Water stats."""
@@ -117,10 +138,10 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             previous_read = float(previous_read)
         for reading in hourly_consumption_data:
             start = dt_util.parse_datetime(
-                reading["date"]).replace(tzinfo=tz("Europe/London"))
+                reading["date"]).replace(tzinfo=dt_util.get_time_zone("Europe/London"))
             if is_dst(start):
                 start = dt_util.parse_datetime(
-                    reading["date"]).replace(tzinfo=tz("Europe/London"))
+                    reading["date"]).replace(tzinfo=dt_util.get_time_zone("Europe/London"))
             if last_stats is not None:
                 if last_stats.get(
                     "start"

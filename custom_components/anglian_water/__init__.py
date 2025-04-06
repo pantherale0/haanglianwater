@@ -5,8 +5,10 @@ This integration is not endoursed or supported by Anglian Water.
 
 from __future__ import annotations
 
+import logging
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN, Platform
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -14,6 +16,8 @@ from homeassistant.core import (
     SupportsResponse,
 )
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import issue_registry as ir
 from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.exceptions import ServiceUnavailableError
@@ -25,8 +29,7 @@ from .const import (
     CONF_ACCOUNT_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
-    SVC_GET_USAGES_SCHEMA,
-    SVC_FORCE_REFRESH_STATISTICS,
+    CONF_VERSION
 )
 from .coordinator import AnglianWaterDataUpdateCoordinator
 
@@ -34,15 +37,24 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
 ]
 
+_LOGGER = logging.getLogger(__name__)
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
+    if entry.version == CONF_VERSION:
+        ir.async_delete_issue(hass, DOMAIN, "manual_migration")
+    if entry.version < CONF_VERSION:
+        return False
     try:
         _api = MSOB2CAuth(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             account_id=entry.data[CONF_ACCOUNT_ID],
+            refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
+            session=async_get_clientsession(hass),
         )
         await _api.send_login_request()
         _aw = await AnglianWater.create_from_authenticator(
@@ -70,8 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             domain=DOMAIN,
             service="get_readings",
             service_func=get_readings,
-            supports_response=SupportsResponse.ONLY,
-            schema=SVC_GET_USAGES_SCHEMA,
+            supports_response=SupportsResponse.ONLY
         )
 
         # service call to force refresh data in database
@@ -83,8 +94,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             domain=DOMAIN,
             service="force_refresh_statistics",
             service_func=force_refresh_statistics,
-            supports_response=SupportsResponse.NONE,
-            schema=SVC_FORCE_REFRESH_STATISTICS,
+            supports_response=SupportsResponse.NONE
         )
 
         return True
@@ -110,4 +120,28 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 # pylint: disable=unused-argument
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Migrate config entry."""
-    return True
+    _LOGGER.debug("Migrating configuration from version %s",
+                  entry.version)
+    new_data = entry.data.copy()
+    if entry.options:
+        new_data.update(entry.options)
+    if entry.version > CONF_VERSION:
+        _LOGGER.debug("Migration not needed")
+        return True
+    if entry.version < 3:
+        if CONF_ACCOUNT_ID in entry.data:
+            hass.config_entries.async_update_entry(
+                entry, data=new_data, version=CONF_VERSION
+            )
+            return True
+        _LOGGER.info("Manual migration is required")
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "manual_migration",
+            is_fixable=False,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="manual_migration",
+            is_persistent=True,
+        )
+    return False

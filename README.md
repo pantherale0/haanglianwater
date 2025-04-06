@@ -34,10 +34,10 @@ This integration will also collect the past year worth of smart meter readings f
 
 ### HACS
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=haangianwater)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=haanglianwater)
 
 1. Open HACS on your HA instance.
-1. Copy the repository URL: [https://github.com/pantherale0/haangianwater](https://github.com/pantherale0/haangianwater).
+1. Copy the repository URL: [https://github.com/pantherale0/haanglianwater](https://github.com/pantherale0/haanglianwater).
 1. In the HACS menu (3 dots in the top right corner), choose "Custom repositories."
 1. Paste the copied URL into the repository field.
 1. Set the Type as "Integration."

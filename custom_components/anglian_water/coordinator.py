@@ -65,17 +65,17 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         yesterday = yesterday.replace(
             hour=0, minute=0, second=0, microsecond=0)
         output = []
-        for x in self.client.current_readings:
-            if dt_util.parse_datetime(x["date"]).date() == yesterday.date():
-                output.append(x["meters"][0])
+        for reading in self.client.current_readings:
+            if dt_util.parse_datetime(reading["date"]).date() == yesterday.date():
+                output.append(reading["meters"][0])
         return output
 
     @property
     def get_yesterday_cost(self) -> float:
         """Return the cost of water usage yesterday."""
         output = 0.0
-        for x in self.get_yesterday_reads:
-            output += (x["consumption"]/1000) * \
+        for reading in self.get_yesterday_reads:
+            output += (reading["consumption"]/1000) * \
                 self.client.current_tariff_rate
         return output
 

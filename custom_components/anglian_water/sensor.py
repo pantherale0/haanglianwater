@@ -60,6 +60,6 @@ class AnglianWaterSensor(AnglianWaterEntity, SensorEntity):
         output = 0.0
         if self.entity_description.key == "anglian_water_previous_cost":
             return self.coordinator.get_yesterday_cost
-        for x in self.coordinator.get_yesterday_reads:
-            output += x["consumption"]
+        for reading in self.coordinator.get_yesterday_reads:
+            output += reading["consumption"]
         return output

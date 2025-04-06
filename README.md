@@ -17,7 +17,7 @@ _Integration to integrate with [haanglianwater][haanglianwater]._
 
 | Platform | Description                                    |
 | -------- | ---------------------------------------------- |
-| `sensor` | Show the previous day water usage information. |
+| `sensor` | Show the latest and previous day water usage information. |
 
 This integration will also collect the past year worth of smart meter readings from your dashboard and import them into a statistic for use with your energy dashboard.
 

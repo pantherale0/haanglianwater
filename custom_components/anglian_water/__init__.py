@@ -76,7 +76,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # load service to request data for a specific time frame
         async def get_readings(call: ServiceCall) -> ServiceResponse:
             """Handle a request to get readings."""
-            return await _aw.get_usages()
+            await _aw.get_usages()
+            return {
+                k: v.to_dict() for k, v in _aw.meters.items()
+            }
 
         hass.services.async_register(
             domain=DOMAIN,

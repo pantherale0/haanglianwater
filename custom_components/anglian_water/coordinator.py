@@ -95,11 +95,9 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         except InvalidAccountIdError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except ExpiredAccessTokenError as exception:
-            if not token_refreshed:
-                await self.client.api.token_refresh()
-                await self._async_update_data(True)
-            else:
-                raise UpdateFailed(exception) from exception
+            # No need to retry here, because module already refreshes the token
+            # This error is something different
+            raise UpdateFailed(exception) from exception
 
     async def insert_statistics(self):
         """Insert Anglian Water stats."""

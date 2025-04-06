@@ -1,14 +1,18 @@
 """AnglianWaterEntity class."""
 
 from __future__ import annotations
-
-from datetime import timedelta
+import logging
+from datetime import timedelta, datetime
 
 from homeassistant.const import UnitOfVolume
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.recorder import get_instance
+from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 from homeassistant.components.recorder.statistics import (
-    async_import_statistics
+    async_add_external_statistics,
+    get_last_statistics,
+    async_import_statistics,
 )
 from homeassistant.components.recorder.models import StatisticMetaData, StatisticData
 from homeassistant.util import dt as dt_util
@@ -16,6 +20,8 @@ from pyanglianwater import SmartMeter
 
 from .const import DOMAIN, NAME, VERSION
 from .coordinator import AnglianWaterDataUpdateCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AnglianWaterEntity(CoordinatorEntity):
@@ -84,6 +90,69 @@ class AnglianWaterEntity(CoordinatorEntity):
                         self.meter.tariff_rate + offset_cost,
                     )]
                 )
+
+    # async def migrate_statistics(self):
+    #     """Migrate statistics from external to internal."""
+    #     timespan = datetime.now() - timedelta(days=365*10)
+    #     timespan = datetime.now() - datetime.combine(
+    #         timespan, datetime.min.time()
+    #     )
+    #     stat_count = (
+    #         int(
+    #             round(
+    #                 (((timespan.seconds / 3600) + (timespan.days * 24)) * 60) / 2, 0
+    #             )
+    #         )
+    #         + 1
+    #     )
+    #     try:
+    #         if self.entity_description.key == "anglian_water_latest_consumption":
+    #             stat_id = f"{DOMAIN}:anglian_water_previous_consumption"
+    #             stats = await get_instance(self.hass).async_add_executor_job(
+    #                 get_last_statistics, self.hass, stat_count, stat_id, True, {
+    #                     "sum", "state"}
+    #             )
+    #             metadata = StatisticMetaData(
+    #                 source="recorder",
+    #                 statistic_id=self.entity_id,
+    #                 name=self.name,
+    #                 has_mean=False,
+    #                 has_sum=True,
+    #                 unit_of_measurement=UnitOfVolume.LITERS
+    #             )
+    #         elif self.entity_description.key == "anglian_water_latest_cost":
+    #             stat_id = f"{DOMAIN}:anglian_water_previous_costs"
+    #             stats = await get_instance(self.hass).async_add_executor_job(
+    #                 get_last_statistics, self.hass, stat_count, stat_id, True, {
+    #                     "sum", "state"}
+    #             )
+    #             metadata = StatisticMetaData(
+    #                 source="recorder",
+    #                 statistic_id=self.entity_id,
+    #                 name=self.name,
+    #                 has_mean=False,
+    #                 has_sum=True,
+    #                 unit_of_measurement="GBP"
+    #             )
+    #         else:
+    #             return None
+    #         if len(stats) > 0:
+    #             for stat in stats[stat_id]:
+    #                 async_import_statistics(
+    #                     self.hass,
+    #                     metadata=metadata,
+    #                     statistics=[StatisticData(
+    #                         start=dt_util.as_local(datetime.fromtimestamp(
+    #                             stat["start"])),
+    #                         end=dt_util.as_local(datetime.fromtimestamp(
+    #                             stat["end"])),
+    #                         state=stat["state"],
+    #                         sum=stat["sum"]
+    #                     )]
+    #                 )
+    #     except Exception as exception:
+    #         _LOGGER.error("Stats migration failed: %s", exception)
+    #         return False
 
     @property
     def meter(self) -> SmartMeter:

@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass
 )
+# from homeassistant.helpers import entity_platform
 from .const import DOMAIN
 from .coordinator import AnglianWaterDataUpdateCoordinator
 from .entity import AnglianWaterEntity
@@ -78,6 +79,13 @@ async def async_setup_entry(hass, entry, async_add_devices):
             )
             for entity_description in ENTITY_DESCRIPTIONS.values()
         )
+
+    # platform = entity_platform.async_get_current_platform()
+    # platform.async_register_entity_service(
+    #     "migrate_statistics",
+    #     {},
+    #     "migrate_statistics",
+    # )
 
 
 class GenericSensor(AnglianWaterEntity, SensorEntity):

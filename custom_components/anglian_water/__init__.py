@@ -88,18 +88,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             supports_response=SupportsResponse.ONLY
         )
 
-        # service call to force refresh data in database
-        async def force_refresh_statistics(call: ServiceCall):
-            """Handle a request to force refresh stats."""
-            await coordinator.insert_statistics()
-
-        hass.services.async_register(
-            domain=DOMAIN,
-            service="force_refresh_statistics",
-            service_func=force_refresh_statistics,
-            supports_response=SupportsResponse.NONE
-        )
-
         return True
     except ServiceUnavailableError as exception:
         raise ConfigEntryNotReady(

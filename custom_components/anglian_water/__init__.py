@@ -6,7 +6,7 @@ This integration is not endoursed or supported by Anglian Water.
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN, Platform
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -14,6 +14,7 @@ from homeassistant.core import (
     SupportsResponse,
 )
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.exceptions import ServiceUnavailableError
@@ -24,9 +25,7 @@ from .const import (
     CONF_AREA,
     CONF_ACCOUNT_ID,
     CONF_TARIFF,
-    CONF_CUSTOM_RATE,
-    SVC_GET_USAGES_SCHEMA,
-    SVC_FORCE_REFRESH_STATISTICS,
+    CONF_CUSTOM_RATE
 )
 from .coordinator import AnglianWaterDataUpdateCoordinator
 
@@ -43,6 +42,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             account_id=entry.data[CONF_ACCOUNT_ID],
+            refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
+            session=async_get_clientsession(hass),
         )
         await _api.send_login_request()
         _aw = await AnglianWater.create_from_authenticator(
@@ -70,8 +71,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             domain=DOMAIN,
             service="get_readings",
             service_func=get_readings,
-            supports_response=SupportsResponse.ONLY,
-            schema=SVC_GET_USAGES_SCHEMA,
+            supports_response=SupportsResponse.ONLY
         )
 
         # service call to force refresh data in database
@@ -83,8 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             domain=DOMAIN,
             service="force_refresh_statistics",
             service_func=force_refresh_statistics,
-            supports_response=SupportsResponse.NONE,
-            schema=SVC_FORCE_REFRESH_STATISTICS,
+            supports_response=SupportsResponse.NONE
         )
 
         return True

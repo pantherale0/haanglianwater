@@ -55,8 +55,11 @@ class AnglianWaterSensor(AnglianWaterEntity, SensorEntity):
         self.entity_description = entity_description
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> float:
         """Return the native value of the sensor."""
+        output = 0.0
         if self.entity_description.key == "anglian_water_previous_cost":
-            return self.coordinator.client.current_cost
-        return self.coordinator.client.current_usage
+            return self.coordinator.get_yesterday_cost
+        for x in self.coordinator.get_yesterday_reads:
+            output += x["consumption"]
+        return output

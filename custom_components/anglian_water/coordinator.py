@@ -25,11 +25,6 @@ from pyanglianwater.exceptions import (
 from .const import DOMAIN, LOGGER
 
 
-def is_dst(utc_dt: datetime):
-    """Check if time is in daylight savings time."""
-    return bool(time.localtime(utc_dt.timestamp()).tm_isdst)
-
-
 class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 

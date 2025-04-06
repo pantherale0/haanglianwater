@@ -1,8 +1,7 @@
 """DataUpdateCoordinator for integration_blueprint."""
 
 from __future__ import annotations
-import time
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -11,7 +10,6 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.util import dt as dt_util
 from pyanglianwater import AnglianWater
 from pyanglianwater.exceptions import (
     InvalidPasswordError,

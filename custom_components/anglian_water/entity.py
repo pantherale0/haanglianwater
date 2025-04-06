@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from homeassistant.const import UnitOfVolume
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 from homeassistant.components.recorder.statistics import (
-    async_add_external_statistics,
-    get_last_statistics,
     async_import_statistics,
 )
-from homeassistant.components.recorder.models import StatisticMetaData, StatisticData
 from homeassistant.util import dt as dt_util
 from pyanglianwater import SmartMeter
 

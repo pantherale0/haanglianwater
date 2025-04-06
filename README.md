@@ -23,6 +23,8 @@ This integration will also collect the past year worth of smart meter readings f
 
 ## Installation
 
+Ensure you have logged into the new Anglian Water mobile app at least once before configuring this integration.
+
 ### Manual
 
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).

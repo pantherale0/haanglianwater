@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from homeassistant.components.sensor import (
@@ -19,6 +19,7 @@ from .entity import AnglianWaterEntity
 @dataclass(frozen=True, kw_only=True)
 class AnglianWaterSensorEntityDescription(SensorEntityDescription):
     """Describes AnglianWater sensor entity."""
+
     key: str
     value_fn: Callable[[AnglianWaterEntity],
                        float] | None = None

@@ -3,18 +3,9 @@
 from __future__ import annotations
 import time
 from datetime import timedelta, datetime
-from operator import itemgetter
 
-from homeassistant.components.recorder import get_instance
-from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
-from homeassistant.components.recorder.statistics import (
-    async_import_statistics,
-    async_add_external_statistics,
-    get_last_statistics,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import UnitOfVolume
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
@@ -31,7 +22,7 @@ from pyanglianwater.exceptions import (
     InvalidAccountIdError
 )
 
-from .const import DOMAIN, LOGGER, CONF_VERSION
+from .const import DOMAIN, LOGGER
 
 
 def is_dst(utc_dt: datetime):

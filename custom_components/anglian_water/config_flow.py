@@ -90,7 +90,7 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             type=selector.TextSelectorType.PASSWORD
                         ),
                     ),
-                    vol.Optional(
+                    vol.Required(
                         CONF_AREA,
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(

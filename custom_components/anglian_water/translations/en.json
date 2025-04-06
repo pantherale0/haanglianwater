@@ -45,5 +45,11 @@
             "name": "Get Available Readings",
             "description": "Get available water meter readings for a given period."
         }
+    },
+    "issues": {
+        "manual_migration": {
+            "description": "The Anglian Water integration has been updated to use a new authentication system. Please remove the old configuration and reconfigure the integration.",
+            "title": "Manual Migration Required"
+        }
     }
 }

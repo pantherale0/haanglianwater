@@ -44,7 +44,7 @@ async def async_get_device_diagnostics(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     device_entry: DeviceEntry,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Get diagnostics for a device entry."""
     entry = hass.data[DOMAIN][config_entry.entry_id]
     meter = entry.client.meters.get(device_entry.serial_number, None)

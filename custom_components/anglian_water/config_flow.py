@@ -74,10 +74,6 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_ACCOUNT_ID,
-                        default=(user_input or {}).get(CONF_ACCOUNT_ID, ""),
-                    ): selector.TextSelector(),
-                    vol.Required(
                         CONF_USERNAME,
                         default=(user_input or {}).get(CONF_USERNAME, ""),
                     ): selector.TextSelector(

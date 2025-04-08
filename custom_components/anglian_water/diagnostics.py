@@ -49,6 +49,8 @@ async def async_get_device_diagnostics(
     meter = entry.client.meters.get(device_entry.serial_number, None)
     if meter is not None:
         meter = meter.to_dict()
+    else:
+        meter = {}
     return {
         "device_entry": async_redact_data(device_entry.serial_number, REDACTED_FIELDS),
         "config_entry": async_redact_data(device_entry.config_entries, REDACTED_FIELDS),

@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-from homeassistant.const import UnitOfVolume
+from homeassistant.const import MATCH_ALL
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
@@ -22,6 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class AnglianWaterEntity(CoordinatorEntity):
     """AnglianWaterEntity class."""
+
+    _unrecorded_attributes = frozenset({MATCH_ALL})
 
     def __init__(
         self, coordinator: AnglianWaterDataUpdateCoordinator, entity: str, meter: str

@@ -5,6 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from typing import Any
 from homeassistant.helpers.device_registry import DeviceEntry
 
 from pyanglianwater.enum import UsagesReadGranularity
@@ -22,7 +23,7 @@ REDACTED_FIELDS = [
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Get diagnostics for a config entry."""
     entry = hass.data[DOMAIN][config_entry.entry_id]
     return {

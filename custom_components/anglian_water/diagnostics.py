@@ -1,16 +1,15 @@
-"""Home Assistant Anglian Water Diagnostics"""
+"""Home Assistant Anglian Water Diagnostics."""
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from typing import Any
 from homeassistant.helpers.device_registry import DeviceEntry
 
 from pyanglianwater.enum import UsagesReadGranularity
 
-from .const import DOMAIN, VERSION
+from .const import DOMAIN
 
 REDACTED_FIELDS = [
     CONF_USERNAME,

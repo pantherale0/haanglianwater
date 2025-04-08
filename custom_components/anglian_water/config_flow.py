@@ -19,7 +19,6 @@ from pyanglianwater.exceptions import (
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_ACCOUNT_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION,

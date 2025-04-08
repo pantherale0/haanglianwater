@@ -47,18 +47,6 @@ Ensure you have logged into the new Anglian Water mobile app at least once befor
 1. Restart Home Assistant.
 1. In the HA UI, go to "Configuration" -> "Integrations," click "+," and search for "Anglian Water."
 
-## Retrieving account ID
-
-As of 2nd April 2025, Anglian Water have turned off all of the old API endpoints this integration was using, therefore it not longer pulls back more than a couple of days worth of data. While the integration will handle auth successfully, you will need to provide your encrypted account ID. To get this, you can login to the standard Anglian Water website with dev tools open, monitoring the network calls to `https://apims-waf.awis.systems`.
-
-1. Launch browser of your choice, open Dev Tools (Inspect Element)
-1. Within Dev Tools window, switch to the network tab
-1. In the filter, enter `apims-waf.awis.systems`
-1. Login to Anglian Water's website as normal (https://myaccount.anglianwater.co.uk)
-1. Within Dev Tools, you will see a number of HTTP requests made, the first 2 should contain `state` in the `File` column. Select the request after with a bunch of random numbers and letters (first GET request)
-1. Your account ID is everything after `https://apims-waf.awis.systems/myaccount/v1/accounts/` in the URL on the right hand side, copy the entire string.
-1. Paste the copied string into the Account ID field in the config flow
-
 ## Configuration is done in the UI
 
 <!---->

@@ -19,7 +19,6 @@ from pyanglianwater.exceptions import (
 from .const import (
     DOMAIN,
     LOGGER,
-    CONF_ACCOUNT_ID,
     CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION,
@@ -73,10 +72,6 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_ACCOUNT_ID,
-                        default=(user_input or {}).get(CONF_ACCOUNT_ID, ""),
-                    ): selector.TextSelector(),
                     vol.Required(
                         CONF_USERNAME,
                         default=(user_input or {}).get(CONF_USERNAME, ""),

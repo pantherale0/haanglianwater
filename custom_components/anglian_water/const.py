@@ -13,5 +13,5 @@ VERSION = _version.__version__
 CONF_ACCOUNT_ID = "account_id"
 CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
-CONF_VERSION = 3
+CONF_VERSION = 4
 CONF_AREA = "area"

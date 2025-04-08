@@ -50,7 +50,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _api = MSOB2CAuth(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
-            account_id=entry.data[CONF_ACCOUNT_ID],
             refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
             session=async_get_clientsession(hass),
         )
@@ -114,6 +113,14 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data.update(entry.options)
     if entry.version > CONF_VERSION:
         _LOGGER.debug("Migration not needed")
+        return True
+    if entry.version == 3:
+        _LOGGER.debug(
+            "Dropping account ID from config as this is no longer required")
+        new_data.pop(CONF_ACCOUNT_ID, None)
+        hass.config_entries.async_update_entry(
+            entry, data=new_data, version=CONF_VERSION
+        )
         return True
     if entry.version < 3:
         if CONF_ACCOUNT_ID in entry.data:

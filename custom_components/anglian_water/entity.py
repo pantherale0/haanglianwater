@@ -42,6 +42,7 @@ class AnglianWaterEntity(CoordinatorEntity):
 
     def _update_statistics(self):
         """Update statistics for this meter."""
+        _LOGGER.debug("Updating statistics for %s", self.entity_id)
         for reading in self.meter.readings:
             if self.entity_description.key == "anglian_water_latest_consumption":
                 async_import_statistics(

@@ -17,11 +17,13 @@ _Integration to integrate with [haanglianwater][haanglianwater]._
 
 | Platform | Description                                    |
 | -------- | ---------------------------------------------- |
-| `sensor` | Show the previous day water usage information. |
+| `sensor` | Show the latest and previous day water usage information. |
 
 This integration will also collect the past year worth of smart meter readings from your dashboard and import them into a statistic for use with your energy dashboard.
 
 ## Installation
+
+Ensure you have logged into the new Anglian Water mobile app at least once before configuring this integration.
 
 ### Manual
 
@@ -34,10 +36,10 @@ This integration will also collect the past year worth of smart meter readings f
 
 ### HACS
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=haangianwater)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pantherale0&category=integration&repository=haanglianwater)
 
 1. Open HACS on your HA instance.
-1. Copy the repository URL: [https://github.com/pantherale0/haangianwater](https://github.com/pantherale0/haangianwater).
+1. Copy the repository URL: [https://github.com/pantherale0/haanglianwater](https://github.com/pantherale0/haanglianwater).
 1. In the HACS menu (3 dots in the top right corner), choose "Custom repositories."
 1. Paste the copied URL into the repository field.
 1. Set the Type as "Integration."

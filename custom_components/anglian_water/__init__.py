@@ -122,20 +122,4 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, data=new_data, version=CONF_VERSION
         )
         return True
-    if entry.version < 3:
-        if CONF_ACCOUNT_ID in entry.data:
-            hass.config_entries.async_update_entry(
-                entry, data=new_data, version=CONF_VERSION
-            )
-            return True
-        _LOGGER.info("Manual migration is required")
-        ir.async_create_issue(
-            hass,
-            DOMAIN,
-            "manual_migration",
-            is_fixable=False,
-            severity=ir.IssueSeverity.ERROR,
-            translation_key="manual_migration",
-            is_persistent=True,
-        )
     return False

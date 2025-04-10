@@ -53,39 +53,31 @@ class AnglianWaterEntity(CoordinatorEntity):
             has_sum=True,
             unit_of_measurement=self.unit_of_measurement
         )
-        previous_reading = 0.0
         for reading in self.meter.readings:
             stat_start = dt_util.as_local(dt_util.parse_datetime(
                 reading["read_at"])) - timedelta(hours=1)
-            if stat_start.hour == 0:
-                previous_reading = 0.0
-            if self.entity_description.key == "anglian_water_latest_consumption":
+            if self.entity_description.key == "anglian_water_latest_reading":
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
-                        state=previous_reading+reading["consumption"],
-                        sum=reading["read"]*1000,
+                        state=reading["read"],
+                        sum=reading["read"],
                         last_reset=stat_start + timedelta(hours=1)
                     )]
                 )
-                previous_reading = reading["consumption"]
             if self.entity_description.key == "anglian_water_latest_cost":
-                state = reading["consumption"] * \
-                    self.meter.tariff_rate / 1000
-                sum = reading["read"] * self.meter.tariff_rate
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
-                        state=previous_reading+state,
-                        sum=sum,
+                        state=reading["read"] * self.meter.tariff_rate,
+                        sum=reading["read"] * self.meter.tariff_rate,
                         last_reset=stat_start + timedelta(hours=1)
                     )]
                 )
-                previous_reading = state
 
     # async def migrate_statistics(self):
     #     """Migrate statistics from external to internal."""

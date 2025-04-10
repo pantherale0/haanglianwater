@@ -39,7 +39,7 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(hours=6),
+            update_interval=timedelta(minutes=30),
         )
 
     async def _async_update_data(self, token_refreshed: bool = False):

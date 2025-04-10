@@ -11,6 +11,11 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass
 )
+
+from homeassistant.const import (
+    UnitOfVolume
+)
+
 # from homeassistant.helpers import entity_platform
 from .const import DOMAIN
 from .coordinator import AnglianWaterDataUpdateCoordinator
@@ -44,14 +49,14 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         device_class=SensorDeviceClass.MONETARY,
         value_fn=lambda entity: entity.meter.get_yesterday_cost,
     ),
-    "anglian_water_latest_consumption": AnglianWaterSensorEntityDescription(
-        key="anglian_water_latest_consumption",
-        name_fn=lambda entity: f"{entity.meter.serial_number} Latest Consumption",
+    "anglian_water_latest_reading": AnglianWaterSensorEntityDescription(
+        key="anglian_water_latest_reading",
+        name_fn=lambda entity: f"{entity.meter.serial_number} Latest Reading",
         icon="mdi:water",
-        native_unit_of_measurement="L",
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.WATER,
-        value_fn=lambda entity: entity.meter.latest_consumption,
-        state_class=SensorStateClass.TOTAL
+        value_fn=lambda entity: entity.meter.latest_read,
+        state_class=SensorStateClass.TOTAL_INCREASING
     ),
     "anglian_water_latest_cost": AnglianWaterSensorEntityDescription(
         key="anglian_water_latest_cost",
@@ -59,10 +64,8 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         icon="mdi:cash",
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
-        value_fn=lambda entity: entity.meter.latest_consumption *
-            (entity.meter.tariff_rate/1000) +
-        (entity.coordinator.client.current_tariff_service / 365),
-        state_class=SensorStateClass.TOTAL
+        value_fn=lambda entity: entity.meter.latest_read * entity.meter.tariff_rate,
+        state_class=SensorStateClass.TOTAL_INCREASING
     ),
 }
 

@@ -13,6 +13,7 @@ from pyanglianwater.exceptions import (
     InvalidUsernameError,
     InvalidPasswordError,
     ServiceUnavailableError,
+    SelfAssertedError
 )
 
 
@@ -51,6 +52,9 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
             except InvalidPasswordError as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = "auth"
+            except SelfAssertedError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
             except ServiceUnavailableError:

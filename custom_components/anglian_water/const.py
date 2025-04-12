@@ -15,3 +15,5 @@ CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
 CONF_VERSION = 4
 CONF_AREA = "area"
+CONF_INITIAL_READ = "initial_read"
+CONF_METERS = "meters"

@@ -28,7 +28,7 @@ class AnglianWaterEntity(CoordinatorEntity):
     _unrecorded_attributes = frozenset({MATCH_ALL})
 
     def __init__(
-        self, coordinator: AnglianWaterDataUpdateCoordinator, entity: str, meter: str
+        self, coordinator: AnglianWaterDataUpdateCoordinator, entity: str, meter: str, meter_initial_read: float
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
@@ -41,6 +41,7 @@ class AnglianWaterEntity(CoordinatorEntity):
             manufacturer=NAME,
             serial_number=meter
         )
+        self._meter_initial_read = meter_initial_read
         coordinator.client.register_callback(self.schedule_update_ha_state)
         coordinator.client.register_callback(self._update_statistics)
 
@@ -69,28 +70,30 @@ class AnglianWaterEntity(CoordinatorEntity):
                 reading["read_at"])) - timedelta(hours=1)
             if self.entity_description.key == "anglian_water_latest_reading":
                 if latest_stat is not None:
-                    if latest_stat > reading["read"]:
+                    if latest_stat > reading["read"]-self._meter_initial_read:
                         continue
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
-                        state=reading["read"],
-                        sum=reading["read"]
+                        state=reading["read"]-self._meter_initial_read,
+                        sum=reading["read"]-self._meter_initial_read
                     )]
                 )
             if self.entity_description.key == "anglian_water_latest_cost":
                 if latest_stat is not None:
-                    if latest_stat > reading["read"] * self.meter.tariff_rate:
+                    if latest_stat > (reading["read"]-self._meter_initial_read) * self.meter.tariff_rate:
                         continue
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
-                        state=reading["read"] * self.meter.tariff_rate,
-                        sum=reading["read"] * self.meter.tariff_rate
+                        state=(
+                            reading["read"]-self._meter_initial_read) * self.meter.tariff_rate,
+                        sum=(reading["read"]-self._meter_initial_read) *
+                        self.meter.tariff_rate
                     )]
                 )
 

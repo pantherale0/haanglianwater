@@ -7,9 +7,11 @@ from datetime import timedelta
 from homeassistant.const import MATCH_ALL
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 from homeassistant.components.recorder.statistics import (
-    async_import_statistics
+    async_import_statistics,
+    get_last_statistics
 )
 from homeassistant.util import dt as dt_util
 from pyanglianwater import SmartMeter
@@ -53,29 +55,42 @@ class AnglianWaterEntity(CoordinatorEntity):
             has_sum=True,
             unit_of_measurement=self.unit_of_measurement
         )
+        stats = await get_instance(self.hass).async_add_executor_job(
+            get_last_statistics, self.hass, 1, self.entity_id, True, {
+                "sum", "state"}
+        )
+        latest_stat = None
+        if self.entity_id in stats:
+            stats = stats[self.entity_id]
+            if len(stats) > 0:
+                latest_stat = stats[0]["sum"]
         for reading in self.meter.readings:
             stat_start = dt_util.as_local(dt_util.parse_datetime(
                 reading["read_at"])) - timedelta(hours=1)
             if self.entity_description.key == "anglian_water_latest_reading":
+                if latest_stat is not None:
+                    if latest_stat > reading["read"]:
+                        continue
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
                         state=reading["read"],
-                        sum=reading["read"],
-                        last_reset=stat_start + timedelta(hours=1)
+                        sum=reading["read"]
                     )]
                 )
             if self.entity_description.key == "anglian_water_latest_cost":
+                if latest_stat is not None:
+                    if latest_stat > reading["read"] * self.meter.tariff_rate:
+                        continue
                 async_import_statistics(
                     self.hass,
                     metadata=metadata,
                     statistics=[StatisticData(
                         start=stat_start,
                         state=reading["read"] * self.meter.tariff_rate,
-                        sum=reading["read"] * self.meter.tariff_rate,
-                        last_reset=stat_start + timedelta(hours=1)
+                        sum=reading["read"] * self.meter.tariff_rate
                     )]
                 )
 

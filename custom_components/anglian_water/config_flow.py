@@ -7,13 +7,16 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.const import ANGLIAN_WATER_AREAS
+from pyanglianwater.enum import UsagesReadGranularity
 from pyanglianwater.exceptions import (
     InvalidUsernameError,
     InvalidPasswordError,
     ServiceUnavailableError,
-    SelfAssertedError
+    SelfAssertedError,
+    ExpiredAccessTokenError
 )
 
 
@@ -24,6 +27,8 @@ from .const import (
     CONF_CUSTOM_RATE,
     CONF_VERSION,
     CONF_AREA,
+    CONF_INITIAL_READ,
+    CONF_METERS
 )
 
 
@@ -32,6 +37,7 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = CONF_VERSION
     _user_input: dict = {}
+    _auth: MSOB2CAuth = None
 
     async def async_step_user(
         self,
@@ -64,6 +70,20 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "maintenance"
             else:
                 self._user_input = user_input
+                self._auth = auth
+                _aw = await AnglianWater.create_from_authenticator(self._auth, None)
+                try:
+                    usages = await _aw.get_usages(UsagesReadGranularity.HOURLY, False)
+                except ExpiredAccessTokenError:
+                    LOGGER.error("No compatible smart meters on this account")
+                    return self.async_abort(reason="no_smart_meters")
+                meter_reads = usages[0]["meters"]
+                for meter in meter_reads:
+                    self._user_input.setdefault(CONF_METERS, {})
+                    self._user_input[CONF_METERS][meter["meter_serial_number"]] = {
+                        CONF_INITIAL_READ: meter["read"],
+                    }
+
                 if user_input.get(CONF_AREA) is None:
                     return self.async_create_entry(
                         title=user_input[CONF_USERNAME],

@@ -17,7 +17,7 @@ from homeassistant.const import (
 )
 
 # from homeassistant.helpers import entity_platform
-from .const import DOMAIN
+from .const import DOMAIN, CONF_METERS, CONF_INITIAL_READ
 from .coordinator import AnglianWaterDataUpdateCoordinator
 from .entity import AnglianWaterEntity
 
@@ -55,7 +55,7 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         icon="mdi:water",
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.WATER,
-        value_fn=lambda entity: entity.meter.latest_read,
+        value_fn=lambda entity: entity.meter.latest_read-entity._meter_initial_read,
         state_class=SensorStateClass.TOTAL_INCREASING
     ),
     "anglian_water_latest_cost": AnglianWaterSensorEntityDescription(
@@ -64,7 +64,8 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         icon="mdi:cash",
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
-        value_fn=lambda entity: entity.meter.latest_read * entity.meter.tariff_rate,
+        value_fn=lambda entity: (
+            entity.meter.latest_read-entity._meter_initial_read) * entity.meter.tariff_rate,
         state_class=SensorStateClass.TOTAL_INCREASING
     ),
 }
@@ -73,12 +74,13 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
     coordinator: AnglianWaterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    for meter in coordinator.client.meters.values():
+    for meter in entry.data[CONF_METERS]:
         async_add_devices(
             GenericSensor(
                 coordinator=coordinator,
                 entity_description=entity_description,
-                meter_serial=meter.serial_number
+                meter_serial=meter,
+                meter_initial_read=entry.data[CONF_METERS][meter][CONF_INITIAL_READ],
             )
             for entity_description in ENTITY_DESCRIPTIONS.values()
         )
@@ -98,10 +100,11 @@ class GenericSensor(AnglianWaterEntity, SensorEntity):
         self,
         coordinator: AnglianWaterDataUpdateCoordinator,
         entity_description: AnglianWaterSensorEntityDescription,
-        meter_serial: str
+        meter_serial: str,
+        meter_initial_read: float,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator, entity_description.key, meter_serial)
+        super().__init__(coordinator, entity_description.key, meter_serial, meter_initial_read)
         self.entity_description = entity_description
 
     @property

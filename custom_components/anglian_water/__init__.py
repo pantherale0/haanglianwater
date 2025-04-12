@@ -114,6 +114,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.version > CONF_VERSION:
         _LOGGER.debug("Migration not needed")
         return True
+    if entry.version == 4:
+        return False
     if entry.version == 3:
         _LOGGER.debug(
             "Dropping account ID from config as this is no longer required")

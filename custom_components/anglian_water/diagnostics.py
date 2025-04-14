@@ -16,6 +16,19 @@ REDACTED_FIELDS = [
     CONF_PASSWORD,
     CONF_ACCESS_TOKEN,
     "refresh_token",
+    "address",
+    "formatted_address",
+    "business_partner_number",
+    "account_number",
+    "sub_building_name",
+    "house_number",
+    "street",
+    "city",
+    "postcode",
+    "move_in_date",
+    "payment_type",
+    "payment_arrangement_type"
+    "meter_serial_number"
 ]
 
 

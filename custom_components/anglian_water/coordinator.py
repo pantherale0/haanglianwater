@@ -12,8 +12,6 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from pyanglianwater import AnglianWater
 from pyanglianwater.exceptions import (
-    InvalidPasswordError,
-    InvalidUsernameError,
     UnknownEndpointError,
     ExpiredAccessTokenError,
     ServiceUnavailableError,
@@ -46,10 +44,6 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             await self.client.update()
-        except InvalidUsernameError as exception:
-            raise ConfigEntryAuthFailed(exception) from exception
-        except InvalidPasswordError as exception:
-            raise ConfigEntryAuthFailed(exception) from exception
         except UnknownEndpointError as exception:
             raise UpdateFailed(exception) from exception
         except ServiceUnavailableError as exception:

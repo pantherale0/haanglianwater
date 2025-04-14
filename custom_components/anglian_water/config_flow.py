@@ -8,12 +8,9 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyanglianwater.auth import MSOB2CAuth
-from pyanglianwater.const import ANGLIAN_WATER_AREAS
 from pyanglianwater.exceptions import (
-    InvalidUsernameError,
-    InvalidPasswordError,
     ServiceUnavailableError,
-    SelfAssertedError
+    SelfAssertedError,
 )
 
 
@@ -24,6 +21,7 @@ from .const import (
     CONF_CUSTOM_RATE,
     CONF_VERSION,
     CONF_AREA,
+    ANGLIAN_WATER_AREAS
 )
 
 
@@ -48,12 +46,6 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 await auth.send_login_request()
                 user_input[CONF_ACCESS_TOKEN] = auth.refresh_token
-            except InvalidUsernameError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
-            except InvalidPasswordError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
             except SelfAssertedError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
@@ -64,12 +56,10 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "maintenance"
             else:
                 self._user_input = user_input
-                if user_input.get(CONF_AREA) is None:
-                    return self.async_create_entry(
-                        title=user_input[CONF_USERNAME],
-                        data=user_input,
-                    )
-                return await self.async_step_tariff()
+                return self.async_create_entry(
+                    title=user_input[CONF_USERNAME],
+                    data=user_input,
+                )
         areas = [selector.SelectOptionDict(
             value=k, label=k) for k in ANGLIAN_WATER_AREAS]
         return self.async_show_form(

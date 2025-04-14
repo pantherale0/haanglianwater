@@ -34,6 +34,9 @@
     "exceptions": {
         "maintenance": {
             "message": "Anglian Water app service is currently unavailble due to maintenance."
+        },
+        "smart_meter_unavailable": {
+            "message": "No smart meter was found for this account."
         }
     },
     "services": {
@@ -47,9 +50,13 @@
         }
     },
     "issues": {
-        "no_smart_meter": {
-            "description": "There are no compatible smart meters associated with this account.",
-            "title": "Smart Meter Not Found"
+        "smart_meter_unavailable": {
+            "description": "A valid smart meter was not discovered on the account. Contact Anglian Water for your local smart meter rollout.",
+            "title": "Smart Meter Unavailable"
+        },
+        "maintenance": {
+            "description": "The Anglian Water integration is currently unavailable due to service maintenance.",
+            "title": "Anglian Water App Maintenance"
         }
     }
 }

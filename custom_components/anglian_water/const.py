@@ -15,3 +15,11 @@ CONF_TARIFF = "tariff"
 CONF_CUSTOM_RATE = "custom_rate"
 CONF_VERSION = 4
 CONF_AREA = "area"
+
+ANGLIAN_WATER_AREAS = [
+    "Anglian",
+    "Hartlepool",
+    "Finningley",
+    "Northstowe",
+    "Woods Meadow"
+]

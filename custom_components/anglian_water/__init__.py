@@ -15,19 +15,18 @@ from homeassistant.core import (
     ServiceResponse,
     SupportsResponse,
 )
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import issue_registry as ir
 from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
-from pyanglianwater.exceptions import ServiceUnavailableError
+from pyanglianwater.exceptions import ServiceUnavailableError, SmartMeterUnavailableError
 
 
 from .const import (
     DOMAIN,
     CONF_AREA,
     CONF_ACCOUNT_ID,
-    CONF_TARIFF,
     CONF_CUSTOM_RATE,
     CONF_VERSION
 )
@@ -52,12 +51,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             password=entry.data[CONF_PASSWORD],
             refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
             session=async_get_clientsession(hass),
+            account_number=entry.data.get(CONF_ACCOUNT_ID, None),
         )
         await _api.send_login_request()
         _aw = await AnglianWater.create_from_authenticator(
             authenticator=_api,
             area=entry.data.get(CONF_AREA, None),
-            tariff=entry.data.get(CONF_TARIFF, None),
             custom_rate=entry.data.get(CONF_CUSTOM_RATE, None)
         )
         hass.data.setdefault(DOMAIN, {})
@@ -83,12 +82,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             service_func=get_readings,
             supports_response=SupportsResponse.ONLY
         )
-
+        ir.async_delete_issue(hass, DOMAIN, "maintenance")
+        ir.async_delete_issue(hass, DOMAIN, "smart_meter_unavailable")
         return True
     except ServiceUnavailableError as exception:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "maintenance",
+            is_fixable=False,
+            is_persistent=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_domain=DOMAIN,
+            translation_key="maintenance",
+        )
         raise ConfigEntryNotReady(
             exception, translation_domain=DOMAIN, translation_key="maintenance"
         ) from exception
+    except SmartMeterUnavailableError as exception:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "smart_meter_unavailable",
+            is_fixable=False,
+            is_persistent=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_domain=DOMAIN,
+            translation_key="smart_meter_unavailable",
+        )
+        raise ConfigEntryAuthFailed(exception, translation_domain=DOMAIN,
+                                    translation_key="smart_meter_unavailable") from exception
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

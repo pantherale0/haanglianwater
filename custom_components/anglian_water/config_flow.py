@@ -11,7 +11,6 @@ from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.exceptions import (
     ServiceUnavailableError,
     SelfAssertedError,
-    SmartMeterUnavailableError,
 )
 
 

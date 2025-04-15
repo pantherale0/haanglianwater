@@ -2,12 +2,12 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/pantherale0/haanglianwater",
+                "description": "If you need help with the configuration have a look here: https://github.com/pantherale0/haanglianwater\n\nYour account number is usually collected automatically, however some accounts require this to be manually set.\n\nYour account number is found either on the Anglian Water website or within your latest bill.",
                 "data": {
                     "username": "Email",
                     "password": "Password",
                     "device_id": "Device ID",
-                    "account_id": "Account ID",
+                    "account_id": "Account Number",
                     "area": "Area"
                 }
             },

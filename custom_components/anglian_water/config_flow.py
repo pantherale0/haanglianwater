@@ -21,7 +21,8 @@ from .const import (
     CONF_CUSTOM_RATE,
     CONF_VERSION,
     CONF_AREA,
-    ANGLIAN_WATER_AREAS
+    ANGLIAN_WATER_AREAS,
+    CONF_ACCOUNT_ID
 )
 
 
@@ -78,6 +79,14 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD
                         ),
+                    ),
+                    vol.Optional(
+                        CONF_ACCOUNT_ID,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            step=1
+                        )
                     ),
                     vol.Required(
                         CONF_AREA,

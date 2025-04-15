@@ -82,12 +82,7 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                     vol.Optional(
                         CONF_ACCOUNT_ID,
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            mode=selector.NumberSelectorMode.BOX,
-                            step=1
-                        )
-                    ),
+                    ): selector.TextSelector(),
                     vol.Required(
                         CONF_AREA,
                     ): selector.SelectSelector(

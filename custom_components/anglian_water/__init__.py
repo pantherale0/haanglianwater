@@ -63,6 +63,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id] = coordinator = (
             AnglianWaterDataUpdateCoordinator(hass=hass, client=_aw)
         )
+        hass.config_entries.async_update_entry(
+            entry,
+            data={
+                **entry.data,
+                CONF_ACCESS_TOKEN: _api.refresh_token
+            }
+        )
         await coordinator.async_config_entry_first_refresh()
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

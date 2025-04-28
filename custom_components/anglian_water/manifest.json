@@ -16,7 +16,7 @@
     "anglian_water"
   ],
   "requirements": [
-    "pyanglianwater==2025.4.13"
+    "pyanglianwater==2025.4.14"
   ],
   "version": "0.0.0"
 }

@@ -16,7 +16,8 @@ from homeassistant.const import (
     UnitOfVolume
 )
 
-# from homeassistant.helpers import entity_platform
+from pyanglianwater import SmartMeter
+
 from .const import DOMAIN
 from .coordinator import AnglianWaterDataUpdateCoordinator
 from .entity import AnglianWaterEntity
@@ -27,45 +28,46 @@ class AnglianWaterSensorEntityDescription(SensorEntityDescription):
     """Describes AnglianWater sensor entity."""
 
     key: str
-    value_fn: Callable[[AnglianWaterEntity],
+    value_fn: Callable[[SmartMeter],
                        float] | None = None
-    name_fn: Callable[[AnglianWaterEntity], str] | None = None
+    name_fn: Callable[[SmartMeter], str] | None = None
 
 
 ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
     "anglian_water_previous_consumption": AnglianWaterSensorEntityDescription(
         key="anglian_water_previous_consumption",
-        name_fn=lambda entity: f"{entity.meter.serial_number} Yesterday Consumption",
+        name_fn=lambda entity: f"{entity.serial_number} Yesterday Consumption",
         icon="mdi:water",
-        native_unit_of_measurement="L",
+        native_unit_of_measurement=UnitOfVolume.LITERS,
         device_class=SensorDeviceClass.WATER,
-        value_fn=lambda entity: entity.meter.get_yesterday_consumption
+        value_fn=lambda entity: entity.get_yesterday_consumption,
+        state_class=SensorStateClass.TOTAL_INCREASING
     ),
     "anglian_water_previous_cost": AnglianWaterSensorEntityDescription(
         key="anglian_water_previous_cost",
-        name_fn=lambda entity: f"{entity.meter.serial_number} Yesterday Cost",
+        name_fn=lambda entity: f"{entity.serial_number} Yesterday Cost",
         icon="mdi:cash",
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
-        value_fn=lambda entity: entity.meter.get_yesterday_cost,
+        value_fn=lambda entity: entity.get_yesterday_cost,
     ),
     "anglian_water_latest_reading": AnglianWaterSensorEntityDescription(
         key="anglian_water_latest_reading",
-        name_fn=lambda entity: f"{entity.meter.serial_number} Latest Reading",
+        name_fn=lambda entity: f"{entity.serial_number} Latest Reading",
         icon="mdi:water",
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.WATER,
-        value_fn=lambda entity: entity.meter.latest_read,
+        value_fn=lambda entity: entity.latest_read,
         state_class=SensorStateClass.TOTAL_INCREASING
     ),
     "anglian_water_latest_cost": AnglianWaterSensorEntityDescription(
         key="anglian_water_latest_cost",
-        name_fn=lambda entity: f"{entity.meter.serial_number} Latest Cost",
+        name_fn=lambda entity: f"{entity.serial_number} Latest Cost",
         icon="mdi:cash",
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
-        value_fn=lambda entity: entity.meter.latest_read * entity.meter.tariff_rate,
-        state_class=SensorStateClass.TOTAL_INCREASING
+        value_fn=lambda entity: entity.latest_read * entity.tariff_rate,
+        state_class=SensorStateClass.TOTAL
     ),
 }
 
@@ -78,7 +80,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
             GenericSensor(
                 coordinator=coordinator,
                 entity_description=entity_description,
-                meter_serial=meter.serial_number
+                meter=meter
             )
             for entity_description in ENTITY_DESCRIPTIONS.values()
         )
@@ -98,21 +100,21 @@ class GenericSensor(AnglianWaterEntity, SensorEntity):
         self,
         coordinator: AnglianWaterDataUpdateCoordinator,
         entity_description: AnglianWaterSensorEntityDescription,
-        meter_serial: str
+        meter: SmartMeter
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator, entity_description.key, meter_serial)
-        self.entity_description = entity_description
+        super().__init__(coordinator, entity_description.key, meter)
+        self.entity_description: AnglianWaterSensorEntityDescription = entity_description
 
     @property
     def name(self) -> str:
         """Return name of entity."""
-        return self.entity_description.name_fn(self)
+        return self.entity_description.name_fn(self.meter)
 
     @property
     def native_value(self):
         """Return the native value of the entity."""
-        return self.entity_description.value_fn(self)
+        return self.entity_description.value_fn(self.meter)
 
     @property
     def device_class(self):

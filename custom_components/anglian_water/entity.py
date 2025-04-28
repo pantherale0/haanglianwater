@@ -28,18 +28,21 @@ class AnglianWaterEntity(CoordinatorEntity):
     _unrecorded_attributes = frozenset({MATCH_ALL})
 
     def __init__(
-        self, coordinator: AnglianWaterDataUpdateCoordinator, entity: str, meter: str
+        self,
+        coordinator: AnglianWaterDataUpdateCoordinator,
+        entity: str,
+        meter: SmartMeter
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-        self._meter_serial = meter
+        self.meter = meter
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, coordinator.config_entry.entry_id)},
-            name=meter,
+            name=meter.serial_number,
             model=VERSION,
             manufacturer=NAME,
-            serial_number=meter
+            serial_number=meter.serial_number
         )
         coordinator.client.register_callback(self.schedule_update_ha_state)
         coordinator.client.register_callback(self._update_statistics)
@@ -55,45 +58,28 @@ class AnglianWaterEntity(CoordinatorEntity):
             has_sum=True,
             unit_of_measurement=self.unit_of_measurement
         )
-        stats = await get_instance(self.hass).async_add_executor_job(
-            get_last_statistics, self.hass, 1, self.entity_id, True, {
-                "sum", "state"}
-        )
-        latest_stat = None
-        if self.entity_id in stats:
-            stats = stats[self.entity_id]
-            if len(stats) > 0:
-                latest_stat = stats[0]["sum"]
+        new_statistic_data = []
         for reading in self.meter.readings:
             stat_start = dt_util.as_local(dt_util.parse_datetime(
                 reading["read_at"])) - timedelta(hours=1)
             if self.entity_description.key == "anglian_water_latest_reading":
-                if latest_stat is not None:
-                    if latest_stat > reading["read"]:
-                        continue
-                async_import_statistics(
-                    self.hass,
-                    metadata=metadata,
-                    statistics=[StatisticData(
-                        start=stat_start,
-                        state=reading["read"],
-                        sum=reading["read"]
-                    )]
-                )
+                new_statistic_data.append(StatisticData(
+                    start=stat_start,
+                    state=reading["consumption"]/1000,
+                    sum=reading["read"]
+                ))
             if self.entity_description.key == "anglian_water_latest_cost":
-                if latest_stat is not None:
-                    if latest_stat > reading["read"] * self.meter.tariff_rate:
-                        continue
-                async_import_statistics(
-                    self.hass,
-                    metadata=metadata,
-                    statistics=[StatisticData(
-                        start=stat_start,
-                        state=reading["read"] * self.meter.tariff_rate,
-                        sum=reading["read"] * self.meter.tariff_rate
-                    )]
-                )
-
+                new_statistic_data.append(StatisticData(
+                    start=stat_start,
+                    state=reading["consumption"] *
+                    (self.meter.tariff_rate/1000),
+                    sum=reading["read"] * self.meter.tariff_rate
+                ))
+        async_import_statistics(
+            self.hass,
+            metadata=metadata,
+            statistics=new_statistic_data
+        )
     # async def migrate_statistics(self):
     #     """Migrate statistics from external to internal."""
     #     timespan = datetime.now() - timedelta(days=365*10)
@@ -156,8 +142,3 @@ class AnglianWaterEntity(CoordinatorEntity):
     #     except Exception as exception:
     #         _LOGGER.error("Stats migration failed: %s", exception)
     #         return False
-
-    @property
-    def meter(self) -> SmartMeter:
-        """Return the meter object."""
-        return self.coordinator.client.meters[self._meter_serial]

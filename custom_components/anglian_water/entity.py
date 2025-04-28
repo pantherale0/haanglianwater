@@ -7,11 +7,9 @@ from datetime import timedelta
 from homeassistant.const import MATCH_ALL
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 from homeassistant.components.recorder.statistics import (
-    async_import_statistics,
-    get_last_statistics
+    async_import_statistics
 )
 from homeassistant.util import dt as dt_util
 from pyanglianwater import SmartMeter

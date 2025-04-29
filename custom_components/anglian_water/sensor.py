@@ -50,6 +50,7 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
         value_fn=lambda entity: entity.get_yesterday_cost,
+        state_class=SensorStateClass.TOTAL
     ),
     "anglian_water_latest_reading": AnglianWaterSensorEntityDescription(
         key="anglian_water_latest_reading",

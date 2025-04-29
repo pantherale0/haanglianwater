@@ -57,9 +57,21 @@ class AnglianWaterEntity(CoordinatorEntity):
             unit_of_measurement=self.unit_of_measurement
         )
         new_statistic_data = []
+        internal_counter = 0
+        internal_last_date_read = None
+        current_day_start_index = 0
         for reading in self.meter.readings:
             stat_start = dt_util.as_local(dt_util.parse_datetime(
                 reading["read_at"])) - timedelta(hours=1)
+            if internal_last_date_read is None:
+                internal_last_date_read = stat_start
+            if internal_counter > 0 and internal_last_date_read.date() != stat_start.date():
+                if internal_counter < 22:
+                    new_statistic_data = new_statistic_data[:current_day_start_index]
+                internal_counter = 1
+                current_day_start_index = len(new_statistic_data)
+            else:
+                internal_counter += 1
             if self.entity_description.key == "anglian_water_latest_reading":
                 new_statistic_data.append(StatisticData(
                     start=stat_start,
@@ -73,6 +85,13 @@ class AnglianWaterEntity(CoordinatorEntity):
                     (self.meter.tariff_rate/1000),
                     sum=reading["read"] * self.meter.tariff_rate
                 ))
+            internal_last_date_read = stat_start
+        if internal_counter > 0 and internal_counter < 22:
+            _LOGGER.debug(
+                "Found %d readings for the last day %s, less than 22. Removing incomplete days.",
+                internal_counter, internal_last_date_read.date()
+            )
+            new_statistic_data = new_statistic_data[:current_day_start_index]
         async_import_statistics(
             self.hass,
             metadata=metadata,

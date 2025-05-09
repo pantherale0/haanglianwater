@@ -1,6 +1,6 @@
-"""Custom integration to integration Anglian Water into Home Assistant.
+"""Custom integration to integrate Anglian Water into Home Assistant.
 
-This integration is not endoursed or supported by Anglian Water.
+This integration is not endorsed or supported by Anglian Water.
 """
 
 from __future__ import annotations
@@ -59,8 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             area=entry.data.get(CONF_AREA, None),
             custom_rate=entry.data.get(CONF_CUSTOM_RATE, None)
         )
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][entry.entry_id] = coordinator = (
+        entry.runtime_data = coordinator = (
             AnglianWaterDataUpdateCoordinator(hass=hass, client=_aw)
         )
         hass.config_entries.async_update_entry(
@@ -123,9 +122,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unloaded
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

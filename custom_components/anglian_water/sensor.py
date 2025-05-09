@@ -75,7 +75,7 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
-    coordinator: AnglianWaterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: AnglianWaterDataUpdateCoordinator = entry.runtime_data
     for meter in coordinator.client.meters.values():
         async_add_devices(
             GenericSensor(
@@ -85,13 +85,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
             )
             for entity_description in ENTITY_DESCRIPTIONS.values()
         )
-
-    # platform = entity_platform.async_get_current_platform()
-    # platform.async_register_entity_service(
-    #     "migrate_statistics",
-    #     {},
-    #     "migrate_statistics",
-    # )
 
 
 class GenericSensor(AnglianWaterEntity, SensorEntity):

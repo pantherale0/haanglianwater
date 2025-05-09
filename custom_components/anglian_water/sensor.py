@@ -18,7 +18,6 @@ from homeassistant.const import (
 
 from pyanglianwater import SmartMeter
 
-from .const import DOMAIN
 from .coordinator import AnglianWaterDataUpdateCoordinator
 from .entity import AnglianWaterEntity
 

@@ -47,6 +47,7 @@ class AnglianWaterEntity(CoordinatorEntity):
         )
 
     async def async_added_to_hass(self):
+        """Actions to execute after the entity has been added into Home Assistant."""
         self.coordinator.client.register_callback(
             self.async_schedule_update_ha_state)
         if "latest" in self.entity_description.key:

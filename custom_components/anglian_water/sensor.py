@@ -18,7 +18,6 @@ from homeassistant.const import (
 
 from pyanglianwater import SmartMeter
 
-from .const import DOMAIN
 from .coordinator import AnglianWaterDataUpdateCoordinator
 from .entity import AnglianWaterEntity
 
@@ -50,6 +49,7 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
         native_unit_of_measurement="GBP",
         device_class=SensorDeviceClass.MONETARY,
         value_fn=lambda entity: entity.get_yesterday_cost,
+        state_class=SensorStateClass.TOTAL
     ),
     "anglian_water_latest_reading": AnglianWaterSensorEntityDescription(
         key="anglian_water_latest_reading",
@@ -74,7 +74,7 @@ ENTITY_DESCRIPTIONS: dict[str, AnglianWaterSensorEntityDescription] = {
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
-    coordinator: AnglianWaterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: AnglianWaterDataUpdateCoordinator = entry.runtime_data
     for meter in coordinator.client.meters.values():
         async_add_devices(
             GenericSensor(
@@ -84,13 +84,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
             )
             for entity_description in ENTITY_DESCRIPTIONS.values()
         )
-
-    # platform = entity_platform.async_get_current_platform()
-    # platform.async_register_entity_service(
-    #     "migrate_statistics",
-    #     {},
-    #     "migrate_statistics",
-    # )
 
 
 class GenericSensor(AnglianWaterEntity, SensorEntity):

@@ -15,7 +15,8 @@ from pyanglianwater.exceptions import (
     UnknownEndpointError,
     ExpiredAccessTokenError,
     ServiceUnavailableError,
-    InvalidAccountIdError
+    InvalidAccountIdError,
+    SmartMeterUnavailableError
 )
 
 from .const import DOMAIN, LOGGER
@@ -54,3 +55,5 @@ class AnglianWaterDataUpdateCoordinator(DataUpdateCoordinator):
             # No need to retry here, because module already refreshes the token
             # This error is something different
             raise UpdateFailed(exception) from exception
+        except SmartMeterUnavailableError:
+            return  # ignore this error

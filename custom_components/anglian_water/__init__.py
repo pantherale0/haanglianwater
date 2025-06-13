@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 
+from aiohttp import CookieJar
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN, Platform
 from homeassistant.core import (
@@ -16,7 +17,7 @@ from homeassistant.core import (
     SupportsResponse,
 )
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers import issue_registry as ir
 from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
@@ -50,7 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
-            session=async_get_clientsession(hass),
+            session=async_create_clientsession(
+                hass,
+                jar=CookieJar(quote_cookie=False)),
             account_number=entry.data.get(CONF_ACCOUNT_ID, None),
         )
         await _api.send_login_request()

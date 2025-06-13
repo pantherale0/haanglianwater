@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             refresh_token=entry.data.get(CONF_ACCESS_TOKEN, None),
             session=async_create_clientsession(
                 hass,
-                jar=CookieJar(quote_cookie=False)),
+                cookie_jar=CookieJar(quote_cookie=False)),
             account_number=entry.data.get(CONF_ACCOUNT_ID, None),
         )
         await _api.send_login_request()

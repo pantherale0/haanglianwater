@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import voluptuous as vol
+from aiohttp import CookieJar
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_ACCESS_TOKEN
 from homeassistant.helpers import selector
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from pyanglianwater.auth import MSOB2CAuth
 from pyanglianwater.exceptions import (
     ServiceUnavailableError,
@@ -43,7 +44,10 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 auth = MSOB2CAuth(
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
-                    session=async_get_clientsession(self.hass),
+                    session=async_create_clientsession(
+                        self.hass,
+                        cookie_jar=CookieJar(quote_cookie=False)
+                    ),
                 )
                 await auth.send_login_request()
                 user_input[CONF_ACCESS_TOKEN] = auth.refresh_token

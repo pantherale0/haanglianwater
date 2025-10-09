@@ -33,10 +33,67 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = CONF_VERSION
     _user_input: dict = {}
 
+    async def async_step_reauth(self, entry_data):
+        """Handle configuration by re-auth."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input: dict | None = None):
+        """Handle re-auth confirm."""
+        _errors = {}
+        reauth_entry = self._get_reauth_entry()
+        if user_input is not None:
+            auth = MSOB2CAuth(
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+                session=async_create_clientsession(
+                    self.hass,
+                    cookie_jar=CookieJar(quote_cookie=False)
+                ),
+            )
+            try:
+                await auth.send_login_request()
+            except SelfAssertedError:
+                _errors["base"] = "auth"
+            except ServiceUnavailableError:
+                _errors["base"] = "maintenance"
+            else:
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data={
+                        **reauth_entry.data,
+                        CONF_USERNAME: user_input[CONF_USERNAME],
+                        CONF_PASSWORD: user_input[CONF_PASSWORD],
+                        CONF_ACCESS_TOKEN: auth.refresh_token
+                    }
+                )
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=(reauth_entry.data or {}).get(CONF_USERNAME, ""),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
+                        ),
+                    ),
+                    vol.Required(
+                        CONF_PASSWORD,
+                        default=reauth_entry.data.get(CONF_PASSWORD, ""),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD
+                        ),
+                    )
+                }),
+                errors=_errors
+            )
+
     async def async_step_user(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
@@ -104,7 +161,7 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_tariff(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle tariff step."""
         if user_input is None:
             tariffs = [
@@ -148,7 +205,7 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_custom_rate(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle rate step."""
         if user_input is None:
             return self.async_show_form(

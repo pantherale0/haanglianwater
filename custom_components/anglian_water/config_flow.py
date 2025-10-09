@@ -61,6 +61,8 @@ class AnglianWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     reauth_entry,
                     data={
                         **reauth_entry.data,
+                        CONF_USERNAME: user_input[CONF_USERNAME],
+                        CONF_PASSWORD: user_input[CONF_PASSWORD],
                         CONF_ACCESS_TOKEN: auth.refresh_token
                     }
                 )

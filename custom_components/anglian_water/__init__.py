@@ -16,12 +16,12 @@ from homeassistant.core import (
     ServiceResponse,
     SupportsResponse,
 )
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers import issue_registry as ir
 from pyanglianwater import AnglianWater
 from pyanglianwater.auth import MSOB2CAuth
-from pyanglianwater.exceptions import ServiceUnavailableError, SmartMeterUnavailableError
+from pyanglianwater.exceptions import ServiceUnavailableError, SmartMeterUnavailableError, ExpiredAccessTokenError
 
 
 from .const import (
@@ -119,7 +119,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             translation_key="smart_meter_unavailable",
         )
         return True
-
+    except ExpiredAccessTokenError as exc:
+        raise ConfigEntryAuthFailed from exc
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""

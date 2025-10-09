@@ -1,6 +1,13 @@
 {
     "config": {
         "step": {
+            "reauth_confirm": {
+                "description": "Access token has expired and needs refreshing",
+                "data": {
+                    "username": "Email",
+                    "password": "Password"
+                }
+            },
             "user": {
                 "description": "If you need help with the configuration have a look here: https://github.com/pantherale0/haanglianwater\n\nYour account number is usually collected automatically, however some accounts require this to be manually set.\n\nYour account number is found either on the Anglian Water website or within your latest bill.",
                 "data": {
@@ -28,7 +35,8 @@
             "auth": "Email/Password is wrong.",
             "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred.",
-            "maintenance": "Anglian Water app service is currently unavailble due to maintenance. Try again later."
+            "maintenance": "Anglian Water app service is currently unavailble due to maintenance. Try again later.",
+            "reauth_successful": "Reauthentication successful."
         }
     },
     "exceptions": {

@@ -19,7 +19,9 @@ _Integration to integrate with [haanglianwater][haanglianwater]._
 | -------- | ---------------------------------------------- |
 | `sensor` | Show the latest and previous day water usage information. |
 
-This integration will also collect the past year worth of smart meter readings from your dashboard and import them into a statistic for use with your energy dashboard.
+## Future plans
+
+Work is progressing to migrate this to a core Home Assistant integration, I expect this will happen for either 2026.1 or 2026.2.
 
 ## Installation
 

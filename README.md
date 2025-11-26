@@ -21,7 +21,7 @@ _Integration to integrate with [haanglianwater][haanglianwater]._
 
 ## Future plans
 
-Work is progressing to migrate this to a core Home Assistant integration, I expect this will happen for either 2026.1 or 2026.2.
+This integration will be deprecated following the release of 2025.12 as this is now a core integration.
 
 ## Installation
 
